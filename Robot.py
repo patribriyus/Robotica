@@ -9,7 +9,6 @@ import brickpi3 # import the BrickPi3 drivers
 import sys
 import numpy as np
 import math
-from numpy.linalg import inv
 
 # tambien se podria utilizar el paquete de threading
 from multiprocessing import Process, Value, Array, Lock
@@ -77,9 +76,9 @@ class Robot:
 
         # compute the speed that should be set in each motor ...
         
-        matrixVW = np.matrix([v], [w])
-        matrixRL = np.matrix([Gradio/2, Gradio/2], [Gradio/GL, Gradio/GL])
-        matrixW = np.dot(inv(matrixRL), matrixVW)
+        matrixVW = np.array([[v], [w]])
+        matrixRL = np.array([[Gradio/2, Gradio/2], [Gradio/GL, -Gradio/GL]])
+        matrixW = np.dot(np.linalg.inv(matrixRL), matrixVW)
 
         # Establecer velocidad a ambos motores a la vez
         #speedPower = v
@@ -88,7 +87,7 @@ class Robot:
         # TODO: Comprobar que el puerto B es para la rueda izq y C para der.
         # Set the motor target speed in degrees per second
         speedDPS_right = matrixW[0][0]
-        speedDPS_left = matrixW[0][1]
+        speedDPS_left = matrixW[1][0]
         self.BP.set_motor_dps(self.BP.PORT_B, speedDPS_left)
         self.BP.set_motor_dps(self.BP.PORT_C, speedDPS_right)
 
@@ -96,11 +95,11 @@ class Robot:
     def readSpeed(self):
         """ To be filled"""
         # TODO: revisar
-        matrixRL = np.matrix([Gradio/2, Gradio/2], [Gradio/GL, Gradio/GL])
-        matrixW = np.matrix(self.WR, self.WL)
+        matrixRL = np.array([[Gradio/2, Gradio/2], [Gradio/GL, Gradio/GL]])
+        matrixW = np.array([[self.WR], [self.WL]])
         matrixVW = np.dot(matrixRL, matrixW)
 
-        return matrixVW[0][0], matrixVW[0][1]
+        return matrixVW[0,0], matrixVW[1,0]
 
     def readOdometry(self):
         """ Returns current value of odometry estimation """
