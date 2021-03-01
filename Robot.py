@@ -77,8 +77,8 @@ class Robot:
         # compute the speed that should be set in each motor ...
         
         matrixVW = np.array([[v], [w]])
-        matrixRL = np.array([[Gradio/2, Gradio/2], [Gradio/GL, -Gradio/GL]])
-        matrixW = np.dot(np.linalg.inv(matrixRL), matrixVW)
+        matrixRL = np.array([[1/Gradio, GL/(2*Gradio)], [1/Gradio, -GL/(2*Gradio)]])
+        matrixW = np.dot(matrixRL, matrixVW)
 
         # Establecer velocidad a ambos motores a la vez
         #speedPower = v
@@ -94,12 +94,13 @@ class Robot:
 
     def readSpeed(self):
         """ To be filled"""
-        # TODO: revisar
-        matrixRL = np.array([[Gradio/2, Gradio/2], [Gradio/GL, Gradio/GL]])
-        matrixW = np.array([[self.WR], [self.WL]])
+        matrixRL = np.array([[Gradio/2, Gradio/2], [Gradio/GL, -Gradio/GL]])
+        [WL, WR] = [self.BP.get_motor_encoder(self.BP.PORT_B),
+                                self.BP.get_motor_encoder(self.BP.PORT_C)]
+        matrixW = np.array([[WR], [WL]])
         matrixVW = np.dot(matrixRL, matrixW)
 
-        return matrixVW[0,0], matrixVW[1,0]
+        return matrixVW[0,0], math.radians(matrixVW[1,0])
 
     def readOdometry(self):
         """ Returns current value of odometry estimation """
@@ -161,8 +162,8 @@ class Robot:
                     difTH = w * self.P
                     difS = (v/w) * difTH
                 
-                self.x.value = difS * math.cos(self.th + difTH/2)
-                self.y.value = difS * math.sin(self.th + difTH/2)
+                self.x.value = difS * math.cos(self.th.value + difTH/2)
+                self.y.value = difS * math.sin(self.th.value + difTH/2)
                 self.th.value = difTH
                 self.lock_odometry.release()
                 
@@ -181,12 +182,12 @@ class Robot:
 
 
             tEnd = time.clock()
-            time.sleep(self.P - (tEnd-tIni))
+            time.sleep(self.P - (tEnd-tIni))            
 
         #print("Stopping odometry ... X= %d" %(self.x.value))
         sys.stdout.write("Stopping odometry ... X=  %.2f, \
                 Y=  %.2f, th=  %.2f \n" %(self.x.value, self.y.value, self.th.value))
-
+        self.setSpeed(0,0)
 
     # Stop the odometry thread.
     def stopOdometry(self):
