@@ -25,7 +25,7 @@ def main(args):
 
 
         #DUMMY CODE! delete when you have your own
-        robot.setSpeed(40,0)
+        robot.setSpeed(0.5,0)
         print("Start : %s" % time.ctime())
         time.sleep(3)
         print("X value from main tmp %d" % robot.x.value)
