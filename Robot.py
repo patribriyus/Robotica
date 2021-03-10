@@ -124,8 +124,8 @@ class Robot:
             # compute updates
 
             ######## UPDATE FROM HERE with your code (following the suggested scheme) ########
-            sys.stdout.write("Dummy update of odometry ...., X=  %d, \
-                Y=  %d, th=  %d \n" % (self.x.value, self.y.value, self.th.value))
+            sys.stdout.write("Update of odometry ...., X=  %.2f, \
+                Y=  %.2f, th=  %.2f \n" % (self.x.value, self.y.value, self.th.value))
             # print("Dummy update of odometry ...., X=  %.2f" %(self.x.value) )
 
             # update odometry uses values that require mutex
