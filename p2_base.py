@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import argparse
-import numpy as np
+#import numpy as np
 import time
 from Robot import Robot
+#from readLOG import readLOG
 
 
 def main(args):
@@ -32,15 +33,16 @@ def main(args):
         #time.sleep(3)
         #print("End : %s" % time.ctime())
 
+        #------------------------------------------------- 
 
         # PART 1:
         print("Start : %s" % time.ctime())
         
         # Gira sobre si mismo
         '''robot.setSpeed(0,-0.9)
-        time.sleep(3)
+        time.sleep(3)'''
         
-        robot.setSpeed(0.2,1.0)
+        '''robot.setSpeed(0.2,1.0)
         time.sleep(3.5)
         robot.setSpeed(0.2,-1.0)
         time.sleep(7)
@@ -48,15 +50,36 @@ def main(args):
         time.sleep(3.5)
         
         print("End : %s" % time.ctime())'''
-
+        
+        v = 0.2
+        robot.setSpeed(v,0)
+        time.sleep(1)
+        x, y, th = robot.readOdometry()
+        
+        robot.setSpeed(v-x,0)
+        time.sleep(1)
+        x,y,th = robot.readOdometry()
+        print(x)
+        
+        robot.setSpeed(0,0)
+        
+        print(robot.readOdometry())
+        
+        #readLOG.readLOG()
+        
         # PART 2:
-        print("Start : %s" % time.ctime())
+        '''print("Start : %s" % time.ctime())
         
         robot.setSpeed(0,0.9)
         time.sleep(3)
         
         print("End : %s" % time.ctime())
         
+        robot.setSpeed(0,0)
+        
+        #readLOG.readLOG()'''
+        
+        #-------------------------------------------------        
 
         robot.lock_odometry.acquire()
         print("Odom values at main at the END: %.2f, %.2f, %.2f " % (robot.x.value, robot.y.value, robot.th.value))

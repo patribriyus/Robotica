@@ -15,9 +15,7 @@ import math
 # tambien se podria utilizar el paquete de threading
 from multiprocessing import Process, Value, Array, Lock
 
-# TODO: calcular unidades
 Gradio = 0.027  # Radio ruedas motoras (m - ahora mismo)
-# TODO: Medir distancia entre ruedas
 GL = 0.137  # Distancia entre ruedas motoras (m - ahora mismo entre centros ruedas)
 
 
@@ -32,6 +30,9 @@ class Robot:
         ######## UNCOMMENT and FILL UP all you think is necessary (following the suggested scheme) ########
 
         # Robot construction parameters
+        
+        # Crea el fichero txt LOG
+        self.LOG = open ('LOG.txt','w')
 
         # Velocidad angular de las ruedas Right y Left
         # TODO: calcular en que unidades
@@ -111,6 +112,7 @@ class Robot:
         self.p = Process(target=self.updateOdometry, args=())  # additional_params?))
         self.p.start()
         print("PID: ", self.p.pid)
+        
 
     # You may want to pass additional shared variables besides the odometry values and stop flag
     def updateOdometry(self):  # , additional_params?):
@@ -165,6 +167,10 @@ class Robot:
                 self.y.value = difS * math.sin(self.th.value + difTH / 2)
                 self.th.value = difTH
                 self.lock_odometry.release()
+                
+                # Meter datos en el LOG
+                self.LOG.write(str(self.x.value) + ' ' + str(self.y.value) 
+                               + ' ' + str(self.th.value) + '\n')
 
             except IOError as error:
                 # print(error)
@@ -185,6 +191,7 @@ class Robot:
         sys.stdout.write("Stopping odometry ... X=  %.2f, \
                 Y=  %.2f, th=  %.2f \n" % (self.x.value, self.y.value, self.th.value))
         self.setSpeed(0, 0)
+        self.LOG.close() # Se cierra fichero LOG
 
     # Stop the odometry thread.
     def stopOdometry(self):
