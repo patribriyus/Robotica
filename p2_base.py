@@ -28,53 +28,56 @@ def main(args):
         # 2. perform trajectory
         # -------------------------------------------------
 
-
-
         # TRAYECTORIA 1
 
-        '''print("Start : %s" % time.ctime())
+        #print("Start : %s" % time.ctime())
 
         # Gira sobre si mismo
-        robot.setSpeed(0,-0.9)
-        time.sleep(3)
-        
-        robot.setSpeed(0.2,1.0)
+        '''robot.setSpeed(0, -0.9)
+        time.sleep(2.7)
+
+        robot.setSpeed(0.2, 1.0)
         time.sleep(3.5)
-        robot.setSpeed(0.2,-1.0)
-        time.sleep(7)
-        robot.setSpeed(0.2,1.0)
+        robot.setSpeed(0.2, -1.0)
+        time.sleep(6.7)
+        robot.setSpeed(0.2, 1.0)
         time.sleep(3.5)
         '''
-
-        #TRAYECTORIA 1 con odometria
+        # TRAYECTORIA 1 con odometria
 
         print("Start : %s" % time.ctime())
 
         # Gira sobre si mismo
+        print("-------------Giro sobre si mismo -------------")
         robot.setSpeed(0, -0.9)
         x, y, th = robot.readOdometry()
         while th > -math.pi/2:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
-
+        print("-------------Semi circulo izda -------------")
         robot.setSpeed(0.2, 1.0)
         while th < math.pi/2:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
-
+        print("-------------Ciculo a dcha 1 -------------")
         robot.setSpeed(0.2, -1.0)
-        while th > -math.pi or x > 0.4:
+        while th > 0:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
-
+        print("-------------Ciculo a dcha 2 -------------")
+        while th < math.pi / 2:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+        print("-------------Semi circulo a izda -------------")
         robot.setSpeed(0.2, 1.0)
-        while th < -math.pi/2:
+        while th > -math.pi/2:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
 
         robot.setSpeed(0, 0)
 
         print("End : %s" % time.ctime())
+
         '''
         v = 0.1
         w = 0.1
@@ -87,7 +90,7 @@ def main(args):
         time.sleep((v*t - x)/v) #S0/v0
         x, y, th = robot.readOdometry()
         print(x)
-      
+
         robot.setSpeed(0.2, 0)
         time.sleep(4)
         robot.setSpeed(0,0)
@@ -96,8 +99,8 @@ def main(args):
 
         # -------------------------------------------------
 
-        #TRAYECTORIA 2  r:10cm R:20cm L:50cm
-        #tg alpha = (R-r)/L
+        # TRAYECTORIA 2  r:10cm R:20cm L:50cm
+        # tg alpha = (R-r)/L
         '''r=0.1
         R=0.2
         L=0.5
@@ -136,8 +139,8 @@ def main(args):
         robot.setSpeed(0, 0)
         '''
 
-        #TRAYECTORIA 2  r:10cm R:20cm L:50cmcon odometria
-        #tg alpha = (R-r)/L
+        # TRAYECTORIA 2  r:10cm R:20cm L:50cmcon odometria
+        # tg alpha = (R-r)/L
         ''' r=0.1
         R=0.2
         L=0.5
@@ -185,7 +188,6 @@ def main(args):
         robot.setSpeed(0, 0)
         '''
 
-
         robot.lock_odometry.acquire()
         print("Odom values at main at the END: %.2f, %.2f, %.2f " % (robot.x.value, robot.y.value, robot.th.value))
         robot.lock_odometry.release()
@@ -199,6 +201,7 @@ def main(args):
     except KeyboardInterrupt:
         # except the program gets interrupted by Ctrl+C on the keyboard.
         # THIS IS IMPORTANT if we want that motors STOP when we Ctrl+C ...
+        robot.setSpeed(0, 0)  # TODO: annadido para que paren los motores si paramos el programa
         robot.stopOdometry()
 
 
