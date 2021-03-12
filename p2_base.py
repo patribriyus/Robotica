@@ -31,23 +31,51 @@ def main(args):
 
 
         # TRAYECTORIA 1
-        '''
-        print("Start : %s" % time.ctime())
+
+        '''print("Start : %s" % time.ctime())
 
         # Gira sobre si mismo
         robot.setSpeed(0,-0.9)
         time.sleep(3)
-
+        
         robot.setSpeed(0.2,1.0)
         time.sleep(3.5)
         robot.setSpeed(0.2,-1.0)
         time.sleep(7)
         robot.setSpeed(0.2,1.0)
         time.sleep(3.5)
+        '''
+
+        #TRAYECTORIA 1 con odometria
+
+        print("Start : %s" % time.ctime())
+
+        # Gira sobre si mismo
+        robot.setSpeed(0, -0.9)
+        x, y, th = robot.readOdometry()
+        while th > -math.pi/2:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+
+        robot.setSpeed(0.2, 1.0)
+        while th < math.pi/2:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+
+        robot.setSpeed(0.2, -1.0)
+        while th > -math.pi or x > 0.4:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+
+        robot.setSpeed(0.2, 1.0)
+        while th < -math.pi/2:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+
+        robot.setSpeed(0, 0)
 
         print("End : %s" % time.ctime())
         '''
-
         v = 0.1
         w = 0.1
         t = 4
@@ -59,7 +87,7 @@ def main(args):
         time.sleep((v*t - x)/v) #S0/v0
         x, y, th = robot.readOdometry()
         print(x)
-        '''
+      
         robot.setSpeed(0.2, 0)
         time.sleep(4)
         robot.setSpeed(0,0)
@@ -106,16 +134,62 @@ def main(args):
         robot.setSpeed(v, -w)
         time.sleep(1)
         robot.setSpeed(0, 0)
+        '''
 
+        #TRAYECTORIA 2  r:10cm R:20cm L:50cmcon odometria
+        #tg alpha = (R-r)/L
+        ''' r=0.1
+        R=0.2
+        L=0.5
+        alpha= math.atan((R-r)/L)
+        #Girar sobre si mismo 90 izda
+        robot.setSpeed(0, 0.9)
+        x, y, th = robot.readOdometry()
+        while th >math.radians(alpha): #alpha ~= 0.46 radianes
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+        #Cuarto circulo -alpha a dcha
+        w=math.radians(90-alpha)/2
+        v=r*w
+        robot.setSpeed(v, -w)
+        while th < math.pi / 2:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+        # Recto hipotenusa (sqrt((R-r)^2+L^2))
+        v = math.sqrt(((R-r)*(R-r))+(L*L))/5
+        robot.setSpeed(v,0)
+        while x < r + math.sqrt(((R-r)*(R-r))+(L*L)):
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+        #Semicirculo + alpha a dcha
+        w = math.radians(180 + alpha) / 3
+        v = R * w
+        robot.setSpeed(v, -w)
+        while th > math.pi - math.radians(alpha):
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
 
-        print("hola1")
+        # Recto hipotenusa (sqrt((R-r)^2+L^2))
+        v = math.sqrt(((R-r)*(R-r))+(L*L))/5
+        robot.setSpeed(v,0)
+        while x > r:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+        #Cuarto circulo - alpha a dcha
+        w = math.radians(90-alpha)/2
+        v = r * w
+        robot.setSpeed(v, -w)
+        while x > 0 and th > math.pi/2:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+        robot.setSpeed(0, 0)
+        '''
+
 
         robot.lock_odometry.acquire()
-        print("hola")
         print("Odom values at main at the END: %.2f, %.2f, %.2f " % (robot.x.value, robot.y.value, robot.th.value))
-        print("adios")
         robot.lock_odometry.release()
-        '''
+
         # 3. wrap up and close stuff ...
         # This currently unconfigure the sensors, disable the motors,
         # and restore the LED to the control of the BrickPi3 firmware.

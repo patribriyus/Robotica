@@ -165,7 +165,7 @@ class Robot:
 
                 self.lock_odometry.release()
 
-                if (w == 0): #Cambiar por w pequeño?
+                if (w == 0): #Cambiar por w pequeo?
                     difS = v * self.P
                 else:
                     difTH = w * self.P
@@ -176,7 +176,7 @@ class Robot:
                 thNueva = self.th.value + difTH
                 # si > pi -- th - 2*pi --> giro izda
                 # si < -pi -- th +2*pi --> giro dcha
-                #TODO: implementar normPI con modulo
+                thNueva = thNueva % (2 * math.pi)
                 if thNueva > math.pi:
                     thNueva = thNueva - 2 * math.pi
                 if thNueva < -math.pi:
@@ -186,7 +186,7 @@ class Robot:
                 self.lock_odometry.acquire()
                 self.x.value = self.x.value + difS * math.cos(angulo)
                 self.y.value = self.y.value + difS * math.sin(angulo)
-                self.th.value = self.th.value + difTH
+                self.th.value = thNueva
                 self.lock_odometry.release()
 
 
