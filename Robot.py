@@ -161,10 +161,19 @@ class Robot:
                 else:
                     difTH = w * self.P
                     difS = (v / w) * difTH
+                    #TODO:probar normalizar difTH
 
                 self.x.value = self.x.value + difS * math.cos(self.th.value + (difTH / 2))
                 self.y.value = self.y.value + difS * math.sin(self.th.value + (difTH / 2))
-                self.th.value = difTH
+                self.th.value = self.th.value + difTH
+                # si > pi -- th - 2*pi --> giro izda
+                # si < -pi -- th +2*pi --> giro dcha
+                if self.th.value > math.pi: #TODO: revisar si esta en radianes self.th.value
+                    self.th.value = self.th.value - 2*math.pi
+                if self.th.value < -math.pi:
+                    self.th.value = self.th.value + 2*math.pi
+
+
                 self.lock_odometry.release()
 
                 # Meter datos en el LOG
