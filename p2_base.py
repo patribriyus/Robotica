@@ -42,7 +42,7 @@ def main(args):
         time.sleep(6.7)
         robot.setSpeed(0.2, 1.0)
         time.sleep(3.5)
-        '''
+        
         # TRAYECTORIA 1 con odometria
 
         print("Start : %s" % time.ctime())
@@ -77,7 +77,7 @@ def main(args):
         robot.setSpeed(0, 0)
 
         print("End : %s" % time.ctime())
-
+        '''
         '''
         v = 0.1
         w = 0.1
@@ -139,54 +139,67 @@ def main(args):
         robot.setSpeed(0, 0)
         '''
 
-        # TRAYECTORIA 2  r:10cm R:20cm L:50cmcon odometria
+        # TRAYECTORIA 2  r:10cm R:20cm L:50cm con odometria
         # tg alpha = (R-r)/L
-        ''' r=0.1
+        r=0.1
         R=0.2
         L=0.5
         alpha= math.atan((R-r)/L)
         #Girar sobre si mismo 90 izda
+        print("-------------Girar sobre si mismo 90 izda -------------")
         robot.setSpeed(0, 0.9)
         x, y, th = robot.readOdometry()
-        while th >math.radians(alpha): #alpha ~= 0.46 radianes
+        while th < math.pi/2:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
-        #Cuarto circulo -alpha a dcha
+        # Cuarto circulo -alpha a dcha
+        print("-------------Cuarto circulo -alpha a dcha -------------")
         w=math.radians(90-alpha)/2
         v=r*w
         robot.setSpeed(v, -w)
-        while th < math.pi / 2:
-            time.sleep(robot.P)
-            x, y, th = robot.readOdometry()
-        # Recto hipotenusa (sqrt((R-r)^2+L^2))
-        v = math.sqrt(((R-r)*(R-r))+(L*L))/5
-        robot.setSpeed(v,0)
-        while x < r + math.sqrt(((R-r)*(R-r))+(L*L)):
-            time.sleep(robot.P)
-            x, y, th = robot.readOdometry()
-        #Semicirculo + alpha a dcha
-        w = math.radians(180 + alpha) / 3
-        v = R * w
-        robot.setSpeed(v, -w)
-        while th > math.pi - math.radians(alpha):
+        while th >math.radians(alpha): #alpha ~= 0.46 radianes
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
 
         # Recto hipotenusa (sqrt((R-r)^2+L^2))
+        print("-------------Recto hipotenusa dcha -------------")
+        v = math.sqrt(((R-r)*(R-r))+(L*L))/5
+        robot.setSpeed(v,0)
+        while x < r + L:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+
+        #Semicirculo + alpha a dcha
+        print("-------------Semicirculo + alpha a dcha -------------")
+        w = math.radians(180 + alpha) / 3
+        v = R * w
+        robot.setSpeed(v, -w)
+        while th > math.pi:
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+
+        print("-------------Semicirculo + alpha a dcha 2-------------")
+        while th < math.pi - math.radians(alpha):
+            time.sleep(robot.P)
+            x, y, th = robot.readOdometry()
+
+        # Recto hipotenusa (sqrt((R-r)^2+L^2))
+        print("-------------Recto hipotenusa izda -------------")
         v = math.sqrt(((R-r)*(R-r))+(L*L))/5
         robot.setSpeed(v,0)
         while x > r:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
         #Cuarto circulo - alpha a dcha
+        print("-------------Cuarto circulo - alpha a dcha -------------")
         w = math.radians(90-alpha)/2
         v = r * w
         robot.setSpeed(v, -w)
-        while x > 0 and th > math.pi/2:
+        while th > math.pi/2:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
         robot.setSpeed(0, 0)
-        '''
+
 
         robot.lock_odometry.acquire()
         print("Odom values at main at the END: %.2f, %.2f, %.2f " % (robot.x.value, robot.y.value, robot.th.value))
