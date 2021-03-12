@@ -174,20 +174,21 @@ def main(args):
         w = math.radians(180 + alpha) / 3
         v = R * w
         robot.setSpeed(v, -w)
+        time.sleep(4)
         while th > math.pi:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
 
-        print("-------------Semicirculo + alpha a dcha 2-------------")
-        while th < math.pi - math.radians(alpha):
-            time.sleep(robot.P)
-            x, y, th = robot.readOdometry()
+        #print("-------------Semicirculo + alpha a dcha 2-------------")
+        # while th < math.pi:
+        #  time.sleep(robot.P)
+        #    x, y, th = robot.readOdometry()
 
         # Recto hipotenusa (sqrt((R-r)^2+L^2))
         print("-------------Recto hipotenusa izda -------------")
         v = math.sqrt(((R-r)*(R-r))+(L*L))/5
         robot.setSpeed(v,0)
-        while x > r:
+        while x > r and y > -1:
             time.sleep(robot.P)
             x, y, th = robot.readOdometry()
         #Cuarto circulo - alpha a dcha
