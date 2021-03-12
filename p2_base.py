@@ -26,80 +26,57 @@ def main(args):
         robot.startOdometry()
 
         # 2. perform trajectory
-
-        # DUMMY CODE! delete when you have your own
-        # robot.setSpeed(0.5,0.5)
-        # print("Start : %s" % time.ctime())
-        # time.sleep(2)
-        # print("X value from main tmp %d" % robot.x.value)
-        # time.sleep(3)
-        # print("End : %s" % time.ctime())
-
         # -------------------------------------------------
 
-        # PART 1:
+
+
+        # TRAYECTORIA 1
+        '''
         print("Start : %s" % time.ctime())
 
         # Gira sobre si mismo
-        '''robot.setSpeed(0,-0.9)
-        time.sleep(3)'''
+        robot.setSpeed(0,-0.9)
+        time.sleep(3)
 
-        '''robot.setSpeed(0.2,1.0)
+        robot.setSpeed(0.2,1.0)
         time.sleep(3.5)
         robot.setSpeed(0.2,-1.0)
         time.sleep(7)
         robot.setSpeed(0.2,1.0)
         time.sleep(3.5)
 
-        print("End : %s" % time.ctime())'''
+        print("End : %s" % time.ctime())
+        '''
 
-        ''' v = 0.2
+        v = 0.1
+        w = 0.1
+        t = 4
         robot.setSpeed(v, 0)
-        time.sleep(1)
+        time.sleep(t)
         x, y, th = robot.readOdometry()
 
-        robot.setSpeed(v - x, 0)
-        time.sleep(1)
+        robot.setSpeed(v, w)
+        time.sleep((v*t - x)/v) #S0/v0
         x, y, th = robot.readOdometry()
         print(x)
-
-        robot.setSpeed(0, 0)
-
-        print(robot.readOdometry())'''
-
-        # readLOG.readLOG()
-
-        #--TRAYECTORIA 1 (8)--------------------
-        #1.Girar sobre si mismo 90 derecha
-        #robot.setSpeed(0,1.5)
-        #time.sleep(1);
-        #2.Semi circulo a izda
-        #3.Circulo a dcha
-        #4. Semi circulo derecha
-        #---------------------------------------
-        # PART 2:
-        '''print("Start : %s" % time.ctime())
-
-        robot.setSpeed(0,0.9)
-        time.sleep(3)
-
-        print("End : %s" % time.ctime())
-
+        '''
+        robot.setSpeed(0.2, 0)
+        time.sleep(4)
         robot.setSpeed(0,0)
-
-        #readLOG.readLOG()'''
+        print(robot.readOdometry())
+        '''
 
         # -------------------------------------------------
 
         #TRAYECTORIA 2  r:10cm R:20cm L:50cm
         #tg alpha = (R-r)/L
-        r=0.1
+        '''r=0.1
         R=0.2
         L=0.5
         alpha= math.atan((R-r)/L)
         #Girar sobre si mismo 90 izda
-        robot.setSpeed(0, 0.9)
-        time.sleep(2)
+        robot.setSpeed(0, 1.5)
+        time.sleep(1.1)
         #Cuarto circulo -alpha a dcha
         t=2
         w=math.radians(90-alpha)/t
@@ -128,13 +105,17 @@ def main(args):
         v = r * w
         robot.setSpeed(v, -w)
         time.sleep(1)
+        robot.setSpeed(0, 0)
 
 
+        print("hola1")
 
         robot.lock_odometry.acquire()
+        print("hola")
         print("Odom values at main at the END: %.2f, %.2f, %.2f " % (robot.x.value, robot.y.value, robot.th.value))
+        print("adios")
         robot.lock_odometry.release()
-
+        '''
         # 3. wrap up and close stuff ...
         # This currently unconfigure the sensors, disable the motors,
         # and restore the LED to the control of the BrickPi3 firmware.

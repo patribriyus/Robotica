@@ -35,7 +35,7 @@ class Robot:
         self.LOG = open('LOG.txt', 'w')
 
         # Velocidad angular de las ruedas Right y Left
-        # TODO: calcular en que unidades
+        # readianes/seg
         self.WR = 0
         self.WL = 0
         # self. ...
@@ -68,11 +68,12 @@ class Robot:
         # self.lock_odometry.release()
 
         # odometry update period --> UPDATE value!
-        self.P = 1.0  # tiempo entre cada comprobacion de la odometria (thread)
+        self.P = 0.2  # tiempo entre cada comprobacion de la odometria (thread)
 
     def setSpeed(self, v, w):
         """ To be filled - These is all dummy sample code """
-        # TODO: revisar que es correcto
+
+
         print("setting speed to %.2f %.2f" % (v, w))
 
         # compute the speed that should be set in each motor ...
@@ -85,22 +86,28 @@ class Robot:
         # speedPower = v
         # BP.set_motor_power(BP.PORT_B + BP.PORT_C, speedPower)
 
-        # TODO: Comprobar que el puerto B es para la rueda izq y C para der.
         # Set the motor target speed in degrees per second
         speedDPS_right = degrees(matrixW[0][0])
         speedDPS_left = degrees(matrixW[1][0])
+
         self.BP.set_motor_dps(self.BP.PORT_B, speedDPS_left)
         self.BP.set_motor_dps(self.BP.PORT_C, speedDPS_right)
+
 
     def readSpeed(self):
         """ To be filled"""
         matrixRL = np.array([[Gradio / 2, Gradio / 2], [Gradio / GL, -Gradio / GL]])
-        [WL, WR] = [math.radians(self.BP.get_motor_encoder(self.BP.PORT_B)),
+        [wl, wr] = [math.radians(self.BP.get_motor_encoder(self.BP.PORT_B)),
                     math.radians(self.BP.get_motor_encoder(self.BP.PORT_C))]
-        matrixW = np.array([[WR], [WL]])
+        x = wl - self.WL
+        y = wr - self.WR
+        self.WL = wl
+        self.WR = wr
+        matrixW = np.array([[y/self.P], [x/self.P]])
         matrixVW = np.dot(matrixRL, matrixW)
-
-        return matrixVW[0, 0], math.radians(matrixVW[1, 0])
+        print("WR:", y/self.P, "WL:", x/self.P)
+        print("V:", matrixVW[0, 0], "w:", matrixVW[1, 0])
+        return matrixVW[0, 0], matrixVW[1, 0]
 
     def readOdometry(self):
         """ Returns current value of odometry estimation """
@@ -156,25 +163,32 @@ class Robot:
                 self.lock_odometry.acquire()
                 v, w = self.readSpeed()
 
+                self.lock_odometry.release()
+
                 if (w == 0): #Cambiar por w pequeño?
                     difS = v * self.P
                 else:
                     difTH = w * self.P
                     difS = (v / w) * difTH
-                    #TODO:probar normalizar difTH
 
-                self.x.value = self.x.value + difS * math.cos(self.th.value + (difTH / 2))
-                self.y.value = self.y.value + difS * math.sin(self.th.value + (difTH / 2))
-                self.th.value = self.th.value + difTH
+                angulo = self.th.value + (difTH / 2)
+
+                thNueva = self.th.value + difTH
                 # si > pi -- th - 2*pi --> giro izda
                 # si < -pi -- th +2*pi --> giro dcha
-                if self.th.value > math.pi: #TODO: revisar si esta en radianes self.th.value
-                    self.th.value = self.th.value - 2*math.pi
-                if self.th.value < -math.pi:
-                    self.th.value = self.th.value + 2*math.pi
+                #TODO: implementar normPI con modulo
+                if thNueva > math.pi:
+                    thNueva = thNueva - 2 * math.pi
+                if thNueva < -math.pi:
+                    thNueva = thNueva + 2 * math.pi
+                    # self.th.value=norm_pi(self.th.value)
 
-
+                self.lock_odometry.acquire()
+                self.x.value = self.x.value + difS * math.cos(angulo)
+                self.y.value = self.y.value + difS * math.sin(angulo)
+                self.th.value = self.th.value + difTH
                 self.lock_odometry.release()
+
 
                 # Meter datos en el LOG
                 self.LOG.write(str(self.x.value) + ' ' + str(self.y.value)
