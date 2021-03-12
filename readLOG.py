@@ -48,15 +48,4 @@ with open('LOG.txt') as f:
         loc_eje = [float(x[i]),float(y[i]),float(th[i])] # coordenadas
         print(loc_eje)
         
-        fig = plt.figure()
-
-        ax1 = fig.add_subplot(111)
-        
-        ax1.set_title("Plot title")    
-        ax1.set_xlabel('x label')
-        ax1.set_ylabel('y label')
-        
-        ax1.plot(x,y, c='r')
-        
-        
-        plt.show()
+        dibrobot(loc_eje, 'r', 'p')
