@@ -99,29 +99,32 @@ def main(args):
         alpha= math.atan((R-r)/L)
         #Girar sobre si mismo 90 izda
         robot.setSpeed(0, 0.9)
-        time.sleep(3)
+        time.sleep(2)
         #Cuarto circulo -alpha a dcha
-        w=math.radians(90-alpha) #1 segundo
+        t=2
+        w=math.radians(90-alpha)/t
         v=r*w
         robot.setSpeed(v,-w)
-        time.sleep(1)
+        time.sleep(t)
         # Recto hipotenusa (sqrt((R-r)^2+L^2))
         t=5
         v = math.sqrt(((R-r)*(R-r))+(L*L))/t
         robot.setSpeed(v,0)
         time.sleep(t)
         #Semicirculo + alpha a dcha
-        w = math.radians(180 + alpha)  # 1 segundo
+        t= 3
+        w = math.radians(180 + alpha) / t
         v = R * w
         robot.setSpeed(v, -w)
-        time.sleep(1)
+        time.sleep(t)
         # Recto hipotenusa (sqrt((R-r)^2+L^2))
         t = 5
         v = math.sqrt(((R - r) * (R - r)) + (L * L)) / t
         robot.setSpeed(v, 0)
         time.sleep(t)
         #Cuarto circulo - alpha a dcha
-        w = math.radians(90-alpha)  # 1 segundo
+        t=2
+        w = math.radians(90-alpha)/2  # 1 segundo
         v = r * w
         robot.setSpeed(v, -w)
         time.sleep(1)
