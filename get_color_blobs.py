@@ -6,7 +6,7 @@ import cv2
 import numpy as np;
 
 # Read image
-img = cv2.imread("prueba.jpg")
+img = cv2.imread("prueba1.jpg")
 #img_BGR = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 img_HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 #img_BGR = cv2.imread("many.jpg")
@@ -32,16 +32,8 @@ params.minCircularity = 0.1
 params.filterByColor = False
 # not directly color, but intensity on the channel input
 #params.blobColor = 0
-
-# Filter by Convexity
-#params.filterByConvexity = False
-params.filterByConvexity = True
-params.minConvexity = 0.87
-
-# Filter by Inertia
-#params.filterByInertia = False
-params.filterByInertia = True
-params.minInertiaRatio = 0.01
+params.filterByConvexity = False
+params.filterByInertia = False
 
 
 # Create a detector with the parameters
@@ -72,7 +64,7 @@ cv2.waitKey(0)
 #redMax = (50, 50, 255)
 
 # Elegimos el umbral de rojo en HSV
-redMin1 = (170,100,20)
+redMin1 = (160,100,100)
 redMax1 = (179,255,255)
 # Elegimos el segundo umbral de rojo en HSV
 redMin2 = (0,100,20)
@@ -81,7 +73,7 @@ redMax2 = (8,255,255)
 # hacemos la mask y filtramos en la original
 mask1 = cv2.inRange(img_HSV, redMin1, redMax1)
 mask2 = cv2.inRange(img_HSV, redMin2, redMax2)
-mask_red = mask1 + mask2
+mask_red = mask1
 
 #redMin = (170, 100, 100)
 #redMax = (179, 255, 255)
@@ -107,7 +99,7 @@ cv2.imshow("Red regions", np.hstack([img, red]))
 
 
 # detector finds "dark" blobs by default, so invert image for results with same detector
-keypoints_red = detector.detect(255-mask_red)
+keypoints_red = detector.detect(mask_red)
 #keypoints_blue = detector.detect(255-mask_blue)
 
 # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
