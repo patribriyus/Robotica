@@ -11,6 +11,7 @@ import brickpi3  # import the BrickPi3 drivers
 import sys
 import numpy as np
 import math
+from seguimiento_cam import camInit
 
 # tambien se podria utilizar el paquete de threading
 from multiprocessing import Process, Value, Array, Lock
@@ -219,3 +220,89 @@ class Robot:
     def stopOdometry(self):
         self.finished.value = True
         # self.BP.reset_all()
+        
+    def velAng(xBlob, yBlob, diamBlob):
+        
+        
+        #TODO   xCentroCam se calcula empiricamente
+        xCentroCam = 
+        
+        d = xCemtroCam - xBlob
+        #TODO   b se calcula empiricamente (distancia entre robot y pelota)
+        b = 
+        
+        w = math.arcsin(d/b)
+        
+        return math.radians(w)
+        
+    def velLin():
+        
+        return v
+
+    def trackObject(self, colorRangeMin, colorRangeMax, areaObjetivo):
+        """ Esta funcion persigue la pelota roja hasta una posicion objetivo """
+        finished = False
+        targetFound = False
+        targetPositionReached = False
+        palante = False
+              
+        # Elegimos el umbral de rojo en HSV
+        redMin1 = (170,100,20)
+        redMax1 = (179,255,255)
+        # Elegimos el segundo umbral de rojo en HSV
+        redMin2 = (0,100,20)
+        redMax2 = (8,255,255)
+        
+        detector = camInit()
+        
+        captura = cv2.VideoCapture(0)
+        
+        while not finished:  
+             _, img = captura.read()
+    
+            img_HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+            # hacemos la mask y filtramos en la original
+            mask1 = cv2.inRange(img_HSV, redMin1, redMax1)
+            mask2 = cv2.inRange(img_HSV, redMin2, redMax2)
+            mask_red = mask1 + mask2
+            
+            # detector finds "dark" blobs by default, so invert image for results with same detector
+            keypoints_red = detector.detect(255-mask_red)
+            
+            # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
+            #"x":the x coordinate of each blob in the image.
+            #"y":the y coordinate of each blob in the image.
+            #"size":the diameter of the circle containing the blob.
+            for kp in keypoints_red:
+            	print (kp.pt[0], kp.pt[1], kp.size)
+            #cv2.waitKey(0)    
+                
+            while not targetPositionReached:
+                # 2. decide v and w for the robot to get closer to target position
+                
+                #hacer una funcion para calcular la w
+                w = velAng(kp.pt[0], kp.pt[1], kp.size)
+                if w != 0
+                    #setSpeed w
+                else
+                    #hacer una funcion para calcular la v (todavia por mirar)
+                    # Posible sol: establecer velocidad fija y dejar que el
+                    # robot avance mientras el while comprueba la posicion
+                    #si !palante
+                    # setSpeed v
+                    # palante = true
+                
+                #si la posicion del blob es la deseada por target y targetSize
+                #entonces, position reached y finished
+                if areaObjetivo <= area
+                    targetPositionReached = True
+                    finished = True
+                    captura.release()
+                
+        return finished
+    
+    
+    def catch(self):
+        # decide the strategy to catch the ball once you have reached the target
+        position

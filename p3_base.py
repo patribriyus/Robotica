@@ -16,17 +16,22 @@ def main(args):
         robot = Robot() 
         # 1. launch updateOdometry thread()
         robot.startOdometry()
+        
+        #TODO: definir las variables diametro objetivo.
+        
+        xObj = 300# Posicion x objetiva donde se quiere tener el blob de la pelota
+        diamObj = 
+        areaObj = pi*diamObj/2^2
 
         # 2. Loop running the tracking until ??, then catch the ball
         # TO-DO: ADD to the Robot class a method to track an object, given certain parameters
         # for example the different target properties we want (size, position, color, ..)
         # or a boolean to indicate if we want the robot to catch the object or not
         # At least COLOR, the rest are up to you, but always put a default value.
-    	# res = robot.trackObject(colorRangeMin=[0,0,0], colorRangeMax=[255,255,255], 
-        #                   targetSize=??, target??=??, ...)
-
-        # if res:
-        #   robot.catch
+    	res = robot.trackObject(colorRangeMin=[0,0,0], colorRangeMax=[255,255,255], 
+                           areaObjetivo=pi*(110/2)^2)
+        if res:
+          robot.catch
 
         # 3. wrap up and close stuff ...
         # This currently unconfigure the sensors, disable the motors, 
