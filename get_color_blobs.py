@@ -32,8 +32,16 @@ params.minCircularity = 0.1
 params.filterByColor = False
 # not directly color, but intensity on the channel input
 #params.blobColor = 0
-params.filterByConvexity = False
-params.filterByInertia = False
+
+# Filter by Convexity
+#params.filterByConvexity = False
+params.filterByConvexity = True
+params.minConvexity = 0.87
+
+# Filter by Inertia
+#params.filterByInertia = False
+params.filterByInertia = True
+params.minInertiaRatio = 0.01
 
 
 # Create a detector with the parameters
@@ -43,7 +51,7 @@ if int(ver[0]) < 3 :
 else :
 	detector = cv2.SimpleBlobDetector_create(params)
 
-# keypoints on original image (will look for blobs in grayscale)
+#keypoints on original image (will look for blobs in grayscale)
 keypoints = detector.detect(img)
 # Draw detected blobs as red circles.
 # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
@@ -54,10 +62,10 @@ im_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), c
 cv2.imshow("Keypoints on Gray Scale", im_with_keypoints)
 cv2.waitKey(0)
 
-# filter certain COLOR channels
+#filter certain COLOR channels
 
 # Pixels with 100 <= R <= 255, 15 <= B <= 56, 17 <= G <= 50 will be considered red.
-# similar for BLUE
+#similar for BLUE
 
 # BY DEFAULT, opencv IMAGES have BGR format
 #redMin = (10, 10, 100)
