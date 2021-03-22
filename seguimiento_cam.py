@@ -17,24 +17,24 @@ def camInit():
     params.minThreshold = 10
     params.maxThreshold = 200
     
-    # Filter by Area
-    params.filterByArea = True
-    params.minArea = 200
-    params.maxArea = 10000
-    
-    # Filter by Circularity
-    params.filterByCircularity = True
-    params.minCircularity = 0.1
-    
     # Filter by Color
     params.filterByColor = False
     # not directly color, but intensity on the channel input
     #params.blobColor = 0
     
+    # Filter by Area
+    params.filterByArea = True
+    params.minArea = 200
+    params.maxArea = 50000
+    
+    # Filter by Circularity
+    params.filterByCircularity = True
+    params.minCircularity = 0.2
+    
     # Filter by Convexity
     #params.filterByConvexity = False
     params.filterByConvexity = True
-    params.minConvexity = 0.87
+    params.minConvexity = 0.1
     
     # Filter by Inertia
     #params.filterByInertia = False

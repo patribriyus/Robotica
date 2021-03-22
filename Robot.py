@@ -24,6 +24,15 @@ GL = 0.137  # Distancia entre ruedas motoras (m - ahora mismo entre centros rued
 
 ESC = 27
 
+# Datos de la posicion objetiva
+x_min = 152.0
+x_max = 156.0
+
+y_min = 200.0
+y_max = 210.0
+
+d_min = 44.0
+d_max = 52.0
 
 class Robot:
     def __init__(self, init_position=[0.0, 0.0, 0.0]):
@@ -248,9 +257,9 @@ class Robot:
         
         return math.radians(w)'''
         
-        if xBlob < 155.0:
+        if xBlob < x_min:
             return 0.2
-        elif xBlob > 172.0:
+        elif xBlob > x_max:
             return -0.2
         
     def velLin(self):
@@ -259,12 +268,12 @@ class Robot:
     
     def posObjetiva(self, xBlob, yBlob, dBlob):
         
-        x = xBlob >= 155.0 and xBlob < 172.0
-        y = yBlob >= 144.0 and yBlob < 181.0
+        #x = xBlob >= x_min and xBlob < x_max
+        y = yBlob >= y_min and yBlob < y_max
         #area = math.pi * math.pow(radioBlob,2)
-        d = dBlob >= 104.0 and dBlob < 113.0
-        
-        return x and y and d
+        #d = dBlob >= d_min and dBlob < d_max
+        return y
+        #return x and y and d
 
     def trackObject(self):
         """ Esta funcion persigue la pelota roja hasta una posicion objetivo """
@@ -274,11 +283,11 @@ class Robot:
         #palante = False
               
         # Elegimos el umbral de rojo en HSV
-        redMin1 = (170,100,20)
+        redMin1 = (170,100,210)
         redMax1 = (179,255,255)
         # Elegimos el segundo umbral de rojo en HSV
-        redMin2 = (0,100,20)
-        redMax2 = (8,255,255)
+        redMin2 = (0,100,200)
+        redMax2 = (7,255,255)
         
         detector = camInit()           
         
@@ -323,7 +332,7 @@ class Robot:
                     print("No es posicion objetiva")
                     
                     # TODO: funcion para calcular la w
-                    if kp.pt[0] < 155.0 or kp.pt[0] >= 172.0:
+                    if kp.pt[0] < x_min or kp.pt[0] >= x_max:
                         #setSpeed w
                         w = self.velAng(kp.pt[0], kp.pt[1], kp.size)
                         self.setSpeed(0.05, w)
@@ -353,12 +362,12 @@ class Robot:
         # Se considera que empieza con ella arriba
         
         # Moverse 5 cm hacia delante
-        x, y, th = self.readOdometry()
-        xObj = x+0.05
-        self.setSpeed(0.02,0)
+        '''x, y, th = self.readOdometry()
+        xObj = x+0.045
+        #?self.setSpeed(0.02,0)
         while x < xObj:
             time.sleep(self.P)
-            x, y, th = self.readOdometry()
+            x, y, th = self.readOdometry()'''
             
         # Bajar cesta
         #self.BP.set_motor_dps(self.BP.PORT_D, degrees(0.05))
