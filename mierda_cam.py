@@ -36,19 +36,19 @@ params = cv2.SimpleBlobDetector_Params()
 params.minThreshold = 10
 params.maxThreshold = 200
 
-# Filter by Area
-params.filterByArea = True
-params.minArea = 200
-params.maxArea = 10000
-
-# Filter by Circularity
-params.filterByCircularity = True
-params.minCircularity = 0.1
-
 # Filter by Color
 params.filterByColor = False
 # not directly color, but intensity on the channel input
 #params.blobColor = 0
+
+# Filter by Area
+params.filterByArea = True
+params.minArea = 200
+params.maxArea = 50000
+
+# Filter by Circularity
+params.filterByCircularity = True
+params.minCircularity = 0.1
 
 # Filter by Convexity
 #params.filterByConvexity = False
@@ -58,7 +58,7 @@ params.minConvexity = 0.87
 # Filter by Inertia
 #params.filterByInertia = False
 params.filterByInertia = True
-params.minInertiaRatio = 0.01
+params.minInertiaRatio = 0.5
 
 
 # Create a detector with the parameters
@@ -79,8 +79,6 @@ redMax2 = (8,255,255)
 for img in cam.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 
     img = img.array
-    cv2.imshow('Captura', img)
-    frame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # clear the stream in preparation for the next frame
     rawCapture.truncate(0)
     k = cv2.waitKey(1) & 0xff
@@ -103,7 +101,16 @@ for img in cam.capture_continuous(rawCapture, format="bgr", use_video_port=True)
     #"y":the y coordinate of each blob in the image.
     #"size":the diameter of the circle containing the blob.
     for kp in keypoints_red:
-    	print (kp.pt[0], kp.pt[1], kp.size)
+        print (kp.pt[0], kp.pt[1], kp.size)
+        #print("*******")
+        #print(math.pi*math.pow(kp.size/2, 2))
+    
+    im_with_keypoints = cv2.drawKeypoints(img, keypoints_red, np.array([]),
+	(255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    # Show mask and blobs found
+    cv2.imshow("Keypoints on RED", im_with_keypoints)
+    #cv2.waitKey(0)
 
 cv2.destroyAllWindows()
 

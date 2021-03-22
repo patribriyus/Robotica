@@ -6,7 +6,6 @@ Created on Sat Mar 20 20:29:04 2021
 """
 
 import cv2
-import numpy as np;
 
 
 def camInit():
@@ -49,7 +48,6 @@ def camInit():
     	detector = cv2.SimpleBlobDetector(params)
     else :
     	detector = cv2.SimpleBlobDetector_create(params)
-   
-    
+      
     return detector
 

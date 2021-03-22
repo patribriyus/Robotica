@@ -11,13 +11,18 @@ import brickpi3  # import the BrickPi3 drivers
 import sys
 import numpy as np
 import math
+import picamera
+from picamera.array import PiRGBArray
 from seguimiento_cam import camInit
+import cv2
 
 # tambien se podria utilizar el paquete de threading
 from multiprocessing import Process, Value, Array, Lock
 
 Gradio = 0.027  # Radio ruedas motoras (m - ahora mismo)
 GL = 0.137  # Distancia entre ruedas motoras (m - ahora mismo entre centros ruedas)
+
+ESC = 27
 
 
 class Robot:
@@ -39,7 +44,6 @@ class Robot:
         # readianes/seg
         self.WR = 0
         self.WL = 0
-        # self. ...
 
         ##################################################
         # Motors and sensors setup
@@ -51,8 +55,9 @@ class Robot:
         # self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.TOUCH)
 
         # reset encoder B and C
-        self.BP.offset_motor_encoder(self.BP.PORT_B, self.BP.get_motor_encoder(self.BP.PORT_B))  # reset encoder B
-        self.BP.offset_motor_encoder(self.BP.PORT_C, self.BP.get_motor_encoder(self.BP.PORT_C))  # reset encoder C
+        self.BP.offset_motor_encoder(self.BP.PORT_B, self.BP.get_motor_encoder(self.BP.PORT_B))  # reset encoder B (left)
+        self.BP.offset_motor_encoder(self.BP.PORT_C, self.BP.get_motor_encoder(self.BP.PORT_C))  # reset encoder C (right)
+        #self.BP.offset_motor_encoder(self.BP.PORT_D, self.BP.get_motor_encoder(self.BP.PORT_D))  # reset encoder D (cesta)
 
         ##################################################
         # odometry shared memory values (Localizacion)
@@ -70,6 +75,13 @@ class Robot:
 
         # odometry update period --> UPDATE value!
         self.P = 0.2  # tiempo entre cada comprobacion de la odometria (thread)
+        
+        # set camera ON
+        self.cam = picamera.PiCamera()
+        self.cam.resolution = (320, 240)
+        self.cam.rotation = 180
+        self.cam.framerate = 32
+        self.rawCapture = PiRGBArray(self.cam, size=(320, 240))
 
     def setSpeed(self, v, w):
         """ To be filled - These is all dummy sample code """
@@ -219,13 +231,14 @@ class Robot:
     # Stop the odometry thread.
     def stopOdometry(self):
         self.finished.value = True
+        cv2.destroyAllWindows()
         # self.BP.reset_all()
         
-    def velAng(xBlob, yBlob, diamBlob):
-        
+    def velAng(self, xBlob, yBlob, diamBlob):
+        '''
         
         #TODO   xCentroCam se calcula empiricamente
-        xCentroCam = 
+        #xCentroCam = 
         
         d = xCemtroCam - xBlob
         #TODO   b se calcula empiricamente (distancia entre robot y pelota)
@@ -233,18 +246,32 @@ class Robot:
         
         w = math.arcsin(d/b)
         
-        return math.radians(w)
+        return math.radians(w)'''
         
-    def velLin():
+        if xBlob < 155.0:
+            return 0.2
+        elif xBlob > 172.0:
+            return -0.2
         
+    def velLin(self):
+        v = 1
         return v
+    
+    def posObjetiva(self, xBlob, yBlob, dBlob):
+        
+        x = xBlob >= 155.0 and xBlob < 172.0
+        y = yBlob >= 144.0 and yBlob < 181.0
+        #area = math.pi * math.pow(radioBlob,2)
+        d = dBlob >= 104.0 and dBlob < 113.0
+        
+        return x and y and d
 
-    def trackObject(self, colorRangeMin, colorRangeMax, areaObjetivo):
+    def trackObject(self):
         """ Esta funcion persigue la pelota roja hasta una posicion objetivo """
-        finished = False
-        targetFound = False
-        targetPositionReached = False
-        palante = False
+        #finished = False
+        #targetFound = False
+        #targetPositionReached = False
+        #palante = False
               
         # Elegimos el umbral de rojo en HSV
         redMin1 = (170,100,20)
@@ -253,12 +280,17 @@ class Robot:
         redMin2 = (0,100,20)
         redMax2 = (8,255,255)
         
-        detector = camInit()
+        detector = camInit()           
         
-        captura = cv2.VideoCapture(0)
         
-        while not finished:  
-             _, img = captura.read()
+        for img in self.cam.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):  
+            img = img.array
+            # clear the stream in preparation for the next frame
+            self.rawCapture.truncate(0)
+            k = cv2.waitKey(1) & 0xff
+            if k == ESC:
+                self.cam.close()
+                break
     
             img_HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     
@@ -274,35 +306,60 @@ class Robot:
             #"x":the x coordinate of each blob in the image.
             #"y":the y coordinate of each blob in the image.
             #"size":the diameter of the circle containing the blob.
+            x = 0
             for kp in keypoints_red:
-            	print (kp.pt[0], kp.pt[1], kp.size)
-            #cv2.waitKey(0)    
+                x = kp.pt[0]
+                print (kp.pt[0], kp.pt[1], kp.size)
                 
-            while not targetPositionReached:
-                # 2. decide v and w for the robot to get closer to target position
+            im_with_keypoints = cv2.drawKeypoints(img, keypoints_red, np.array([]),
+        	(255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        
+            # Show mask and blobs found
+            cv2.imshow("Keypoints on RED", im_with_keypoints)
+            
+            if x != 0: # kp -> la lista no esta vacia (es decir, ha detectado un blob)
                 
-                #hacer una funcion para calcular la w
-                w = velAng(kp.pt[0], kp.pt[1], kp.size)
-                if w != 0
-                    #setSpeed w
-                else
-                    #hacer una funcion para calcular la v (todavia por mirar)
-                    # Posible sol: establecer velocidad fija y dejar que el
-                    # robot avance mientras el while comprueba la posicion
-                    #si !palante
-                    # setSpeed v
-                    # palante = true
+                if not self.posObjetiva(kp.pt[0], kp.pt[1], kp.size):
+                    print("No es posicion objetiva")
+                    
+                    # TODO: funcion para calcular la w
+                    if kp.pt[0] < 155.0 or kp.pt[0] >= 172.0:
+                        #setSpeed w
+                        w = self.velAng(kp.pt[0], kp.pt[1], kp.size)
+                        self.setSpeed(0.05, w)
+                    else:
+                        # hacer una funcion para calcular la v (todavia por mirar)
+                        # **Posible sol: establecer velocidad fija y dejar que el
+                        # robot avance mientras el while comprueba la posicion**
+                        # si !palante
+                        # setSpeed v
+                        # palante = true
+                        self.setSpeed(0.05, 0)
+                    
+                else:
+                    print(" posicion objetiva")
+                    break
+                    
+            else:
+                self.setSpeed(0, 0)
                 
-                #si la posicion del blob es la deseada por target y targetSize
-                #entonces, position reached y finished
-                if areaObjetivo <= area
-                    targetPositionReached = True
-                    finished = True
-                    captura.release()
-                
-        return finished
+        return True
     
     
     def catch(self):
         # decide the strategy to catch the ball once you have reached the target
-        position
+        #position
+        # TODO: en caso de empezar el robot con la cesta abajo habria que subirla
+        # Se considera que empieza con ella arriba
+        
+        # Moverse 5 cm hacia delante
+        x, y, th = self.readOdometry()
+        xObj = x+0.05
+        self.setSpeed(0.02,0)
+        while x < xObj:
+            time.sleep(self.P)
+            x, y, th = self.readOdometry()
+            
+        # Bajar cesta
+        #self.BP.set_motor_dps(self.BP.PORT_D, degrees(0.05))
+        #self.BP.set_motor_dps(self.BP.PORT_B, degrees(0.05))
