@@ -11,7 +11,7 @@ def main(args):
         robot.startOdometry()
         
         #TODO: definir las variables diametro objetivo.
-
+        robot.moverCesta("SUBIR") # Se sube la cesta
         # 2. Loop running the tracking until ??, then catch the ball
         # TO-DO: ADD to the Robot class a method to track an object, given certain parameters
         # for example the different target properties we want (size, position, color, ..)

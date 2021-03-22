@@ -25,14 +25,14 @@ GL = 0.137  # Distancia entre ruedas motoras (m - ahora mismo entre centros rued
 ESC = 27
 
 # Datos de la posicion objetiva
-x_min = 152.0
-x_max = 156.0
+x_min = 168.0
+x_max = 170.0
 
-y_min = 200.0
-y_max = 210.0
+y_min = 212.0
+y_max = 214.0
 
-d_min = 44.0
-d_max = 52.0
+d_min = 95.0
+d_max = 106.0
 
 class Robot:
     def __init__(self, init_position=[0.0, 0.0, 0.0]):
@@ -91,6 +91,8 @@ class Robot:
         self.cam.rotation = 180
         self.cam.framerate = 32
         self.rawCapture = PiRGBArray(self.cam, size=(320, 240))
+        
+        self.cestaArriba = False
 
     def setSpeed(self, v, w):
         """ To be filled - These is all dummy sample code """
@@ -115,6 +117,24 @@ class Robot:
         self.BP.set_motor_dps(self.BP.PORT_B, speedDPS_left)
         self.BP.set_motor_dps(self.BP.PORT_C, speedDPS_right)
 
+
+    def setSpeedCesta(self, v, w):
+        """ Establece velocidad al motor de la cesta """
+
+        # compute the speed that should be set in each motor ...
+
+        matrixVW = np.array([[v], [w]])
+        matrixRL = np.array([[1 / Gradio, GL / (2 * Gradio)], [1 / Gradio, -GL / (2 * Gradio)]])
+        matrixW = np.dot(matrixRL, matrixVW)
+
+        # Establecer velocidad a ambos motores a la vez
+        # speedPower = v
+        # BP.set_motor_power(BP.PORT_B + BP.PORT_C, speedPower)
+
+        # Set the motor target speed in degrees per second
+        speedDPS = degrees(matrixW[1][0])
+
+        self.BP.set_motor_dps(self.BP.PORT_D, speedDPS)
 
     def readSpeed(self):
         """ To be filled"""
@@ -243,51 +263,41 @@ class Robot:
         cv2.destroyAllWindows()
         # self.BP.reset_all()
         
-    def velAng(self, xBlob, yBlob, diamBlob):
-        '''
-        
-        #TODO   xCentroCam se calcula empiricamente
-        #xCentroCam = 
-        
-        d = xCemtroCam - xBlob
-        #TODO   b se calcula empiricamente (distancia entre robot y pelota)
-        b = 
-        
-        w = math.arcsin(d/b)
-        
-        return math.radians(w)'''
+    def velAng(self, xBlob):
+        """Decide si la velocidad angular tiene que ser positiva o negativa"""
         
         if xBlob < x_min:
-            return 0.2
+            w = 0.2
         elif xBlob > x_max:
-            return -0.2
+            w = -0.2
+            
+        self.setSpeed(0.05, w)
         
-    def velLin(self):
-        v = 1
-        return v
+    def velLin(self, dBlob):
+        """Decide cuando la velocidad lineal tiene que ser ser mas rapida o mas lenta"""
+        
+        # TODO: si el objeto esta muy lejos -> velocidad alta
+        #       si esta lejos -> velocidad baja
+        self.setSpeed(0.05, 0)
     
     def posObjetiva(self, xBlob, yBlob, dBlob):
         
-        #x = xBlob >= x_min and xBlob < x_max
+        x = xBlob >= x_min and xBlob < x_max
         y = yBlob >= y_min and yBlob < y_max
         #area = math.pi * math.pow(radioBlob,2)
-        #d = dBlob >= d_min and dBlob < d_max
-        return y
-        #return x and y and d
+        d = dBlob >= d_min and dBlob < d_max
+        #return y
+        return x and y and d
 
     def trackObject(self):
         """ Esta funcion persigue la pelota roja hasta una posicion objetivo """
-        #finished = False
-        #targetFound = False
-        #targetPositionReached = False
-        #palante = False
               
         # Elegimos el umbral de rojo en HSV
-        redMin1 = (170,100,210)
+        redMin1 = (175,100,75)
         redMax1 = (179,255,255)
         # Elegimos el segundo umbral de rojo en HSV
-        redMin2 = (0,100,200)
-        redMax2 = (7,255,255)
+        redMin2 = (0,100,100)
+        redMax2 = (8,255,255)
         
         detector = camInit()           
         
@@ -309,15 +319,15 @@ class Robot:
             mask_red = mask1 + mask2
             
             # detector finds "dark" blobs by default, so invert image for results with same detector
-            keypoints_red = detector.detect(255-mask_red)
+            keypoints_red = detector.detect(mask_red)
             
             # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
             #"x":the x coordinate of each blob in the image.
             #"y":the y coordinate of each blob in the image.
             #"size":the diameter of the circle containing the blob.
-            x = 0
+            blobVacio = True
             for kp in keypoints_red:
-                x = kp.pt[0]
+                blobVacio = False
                 print (kp.pt[0], kp.pt[1], kp.size)
                 
             im_with_keypoints = cv2.drawKeypoints(img, keypoints_red, np.array([]),
@@ -326,49 +336,53 @@ class Robot:
             # Show mask and blobs found
             cv2.imshow("Keypoints on RED", im_with_keypoints)
             
-            if x != 0: # kp -> la lista no esta vacia (es decir, ha detectado un blob)
+            if not blobVacio: # si ha detectado un blob, entra
                 
                 if not self.posObjetiva(kp.pt[0], kp.pt[1], kp.size):
-                    print("No es posicion objetiva")
+                    print("NO es posicion objetiva")
                     
-                    # TODO: funcion para calcular la w
                     if kp.pt[0] < x_min or kp.pt[0] >= x_max:
-                        #setSpeed w
-                        w = self.velAng(kp.pt[0], kp.pt[1], kp.size)
-                        self.setSpeed(0.05, w)
+                        self.velAng(kp.pt[0])
                     else:
-                        # hacer una funcion para calcular la v (todavia por mirar)
-                        # **Posible sol: establecer velocidad fija y dejar que el
-                        # robot avance mientras el while comprueba la posicion**
-                        # si !palante
-                        # setSpeed v
-                        # palante = true
-                        self.setSpeed(0.05, 0)
+                        self.velLin(kp.size)
                     
                 else:
-                    print(" posicion objetiva")
+                    print(" Posicion objetiva")
+                    # TODO: antes de salir del for volver a comprobar si la
+                    # la pelota sigue en su posicion objetiva
                     break
                     
             else:
-                self.setSpeed(0, 0)
+                # Si no encuentra la pelota, da vueltas sobre si mismo
+                self.setSpeed(0, 0.2)
+                #self.setSpeed(0, 0)
                 
         return True
     
+    def moverCesta(self, movimiento):
+        """Mueve la cesta hacia arriba o hacia abajo"""
+        if movimiento == "SUBIR":
+            self.setSpeedCesta(-0.05,0)
+            time.sleep(0.6)
+            self.setSpeedCesta(0.0,0)
+            self.cestaArriba = True
+
+        else: # "BAJAR"
+            self.setSpeedCesta(0.05,0)
+            time.sleep(0.55)
+            self.setSpeedCesta(0.0,0)
+            self.cestaArriba = False
     
     def catch(self):
-        # decide the strategy to catch the ball once you have reached the target
-        #position
-        # TODO: en caso de empezar el robot con la cesta abajo habria que subirla
+        """ Tras llegar a la posicion deseada, coge la pelota """
         # Se considera que empieza con ella arriba
         
-        # Moverse 5 cm hacia delante
-        '''x, y, th = self.readOdometry()
-        xObj = x+0.045
-        #?self.setSpeed(0.02,0)
-        while x < xObj:
-            time.sleep(self.P)
-            x, y, th = self.readOdometry()'''
-            
         # Bajar cesta
-        #self.BP.set_motor_dps(self.BP.PORT_D, degrees(0.05))
-        #self.BP.set_motor_dps(self.BP.PORT_B, degrees(0.05))
+        if self.cestaArriba:
+            self.moverCesta("BAJAR")
+            
+        else:
+            self.moverCesta("SUBIR")
+            self.moverCesta("BAJAR")
+            
+        # TODO: verificar si ha cogido correctamente la pelota
