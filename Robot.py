@@ -13,7 +13,7 @@ import numpy as np
 import math
 import picamera
 from picamera.array import PiRGBArray
-from seguimiento_cam import camInit
+from detector import detectorInit
 import cv2
 
 # tambien se podria utilizar el paquete de threading
@@ -24,14 +24,14 @@ GL = 0.137  # Distancia entre ruedas motoras (m - ahora mismo entre centros rued
 
 ESC = 27
 
-# Datos de la posicion objetiva
-x_min = 168.0
-x_max = 170.0
+# Datos de la posicion objetiva del blob
+x_min = 175.0
+x_max = 181.0
 
-y_min = 212.0
-y_max = 214.0
+y_min = 200.0
+y_max = 217.0
 
-d_min = 95.0
+d_min = 93.0
 d_max = 106.0
 
 class Robot:
@@ -66,7 +66,7 @@ class Robot:
         # reset encoder B and C
         self.BP.offset_motor_encoder(self.BP.PORT_B, self.BP.get_motor_encoder(self.BP.PORT_B))  # reset encoder B (left)
         self.BP.offset_motor_encoder(self.BP.PORT_C, self.BP.get_motor_encoder(self.BP.PORT_C))  # reset encoder C (right)
-        #self.BP.offset_motor_encoder(self.BP.PORT_D, self.BP.get_motor_encoder(self.BP.PORT_D))  # reset encoder D (cesta)
+        self.BP.offset_motor_encoder(self.BP.PORT_D, self.BP.get_motor_encoder(self.BP.PORT_D))  # reset encoder D (cesta)
 
         ##################################################
         # odometry shared memory values (Localizacion)
@@ -271,14 +271,14 @@ class Robot:
         elif xBlob > x_max:
             w = -0.2
             
-        self.setSpeed(0.05, w)
+        self.setSpeed(0.07, w)
         
     def velLin(self, dBlob):
         """Decide cuando la velocidad lineal tiene que ser ser mas rapida o mas lenta"""
         
         # TODO: si el objeto esta muy lejos -> velocidad alta
         #       si esta lejos -> velocidad baja
-        self.setSpeed(0.05, 0)
+        self.setSpeed(0.07, 0)
     
     def posObjetiva(self, xBlob, yBlob, dBlob):
         
@@ -287,7 +287,7 @@ class Robot:
         #area = math.pi * math.pow(radioBlob,2)
         d = dBlob >= d_min and dBlob < d_max
         #return y
-        return x and y and d
+        return x and y
 
     def trackObject(self):
         """ Esta funcion persigue la pelota roja hasta una posicion objetivo """
@@ -299,7 +299,7 @@ class Robot:
         redMin2 = (0,100,100)
         redMax2 = (8,255,255)
         
-        detector = camInit()           
+        detector = detectorInit()           
         
         
         for img in self.cam.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):  
@@ -330,6 +330,8 @@ class Robot:
                 blobVacio = False
                 print (kp.pt[0], kp.pt[1], kp.size)
                 
+            # TODO: elegir blob
+                
             im_with_keypoints = cv2.drawKeypoints(img, keypoints_red, np.array([]),
         	(255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         
@@ -354,7 +356,7 @@ class Robot:
                     
             else:
                 # Si no encuentra la pelota, da vueltas sobre si mismo
-                self.setSpeed(0, 0.2)
+                self.setSpeed(0, 1.2)
                 #self.setSpeed(0, 0)
                 
         return True

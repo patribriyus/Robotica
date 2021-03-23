@@ -8,7 +8,7 @@ Created on Sat Mar 20 20:29:04 2021
 import cv2
 
 
-def camInit():
+def detectorInit():
     # Setup default values for SimpleBlobDetector parameters.
     params = cv2.SimpleBlobDetector_Params()
     
