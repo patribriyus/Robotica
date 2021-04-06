@@ -13,8 +13,6 @@ import numpy as np
 import time
 
 ESC = 27
-KNN = 1
-MOG2 = 2
 
 cam = picamera.PiCamera()
 
@@ -47,18 +45,18 @@ params.minArea = 200
 params.maxArea = 50000
 
 # Filter by Circularity
-params.filterByCircularity = True
-params.minCircularity = 0.1
+params.filterByCircularity = False
+params.minCircularity = 0.2
 
 # Filter by Convexity
 #params.filterByConvexity = False
-params.filterByConvexity = True
-params.minConvexity = 0.87
+params.filterByConvexity = False
+params.minConvexity = 0.1
 
 # Filter by Inertia
 #params.filterByInertia = False
-params.filterByInertia = True
-params.minInertiaRatio = 0.5
+params.filterByInertia = False
+params.minInertiaRatio = 0.01
 
 
 # Create a detector with the parameters
@@ -69,10 +67,10 @@ else :
 	detector = cv2.SimpleBlobDetector_create(params)
     
 # Elegimos el umbral de rojo en HSV
-redMin1 = (170,100,20)
+redMin1 = (175,100,75)
 redMax1 = (179,255,255)
 # Elegimos el segundo umbral de rojo en HSV
-redMin2 = (0,100,20)
+redMin2 = (0,100,100)
 redMax2 = (8,255,255)
 
 
@@ -93,8 +91,14 @@ for img in cam.capture_continuous(rawCapture, format="bgr", use_video_port=True)
     mask2 = cv2.inRange(img_HSV, redMin2, redMax2)
     mask_red = mask1 + mask2
     
+    # apply the mask
+    red1 = cv2.bitwise_and(img, img, mask = mask_red)
+    red2 = cv2.bitwise_and(img_HSV, img_HSV, mask = mask_red)
+    cv2.imshow("Red Masks", np.hstack([red1, red2]))
+    
     # detector finds "dark" blobs by default, so invert image for results with same detector
-    keypoints_red = detector.detect(255-mask_red)
+    #keypoints_red = detector.detect(255-mask_red)
+    keypoints_red = detector.detect(mask_red)
     
     # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
     #"x":the x coordinate of each blob in the image.
@@ -109,7 +113,7 @@ for img in cam.capture_continuous(rawCapture, format="bgr", use_video_port=True)
 	(255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     # Show mask and blobs found
-    cv2.imshow("Keypoints on RED", im_with_keypoints)
+    cv2.imshow("Video - Blobs", im_with_keypoints)
     #cv2.waitKey(0)
 
 cv2.destroyAllWindows()

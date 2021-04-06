@@ -18,6 +18,7 @@ class Direcciones(IntEnum):
     IZQUIERDA = 2
     DERECHA = 3
 
+
 class Map2D:
     def __init__(self, map_description_file):
         """
@@ -68,6 +69,7 @@ class Map2D:
         # variables para cambio de trayectoria
         self.distanciaEsperada=0
         self.sensorOjos = None
+
 
         self.connectionMatrix = None
         self.costMatrix =  None
@@ -410,54 +412,72 @@ class Map2D:
 
     def findPath(self, point_ini, point_end):
         """ overloaded call to planPath (x_ini,  y_ini, x_end, y_end) """
+
         return self.findPath(point_ini[0], point_ini[1],
                              point_end[0], point_end[1])
 
     # ############################################################
     # METHODS to IMPLEMENT in P4
     # ############################################################
+    def neighbour(self, cellX, cellY, numNeigh):
+        """
+        devuelve las coordenadas de la celda vecina de x,y
+        si el vecino no existe devuelve -1,-1
+        The neighbour indexing is considered as follows
+        (8-neighbours from cell x,y numbered clock-wise):
+
+        7     0       1
+        6   (x,y)     2
+        5     4       3
+
+        """
+        x_v = cellX
+        y_v = cellY
+
+        if numNeigh in (1, 2, 3):
+            x_v = cellX + 1
+        if numNeigh in (7, 6, 5):
+            x_v = cellX - 1
+        if numNeigh in (7, 0, 1):
+            y_v = cellY + 1
+        if numNeigh in (5, 4, 3):
+            y_v = cellY - 1
+
+        if x_v not in range(0, self.sizeX) or y_v not in range(0, self.sizeY):
+            return -1, -1
+        else:
+            return x_v, y_v
+
+
 
     def fillCostMatrix(self, x_end, y_end):
-        """ inicializa la matriz de costes con objetivo en la posicion x_end e y_end"""
-        self.costMatrix[x_end][y_end] = 0
-        coste = 1
-        self.comprobarVecindad(x_end, y_end, coste)
+        """
+        x_end, y_end: integer values that indicate \
+            the x and y coordinates of the starting (ini) and ending (end) cell
 
-    def comprobarVecindad(self, x, y, coste):
-        """7     0       1
-           6   (x,y)     2
-           5     4       3"""
-        for i in range(0, 7):
-            if self.isConnected(x,y,i) :
-                if i == 0 and (self.costMatrix[x][y+1] == -2 or self.costMatrix[x][y+1] > coste):
-                    self.costMatrix[x][y+1] = coste
-                    self.comprobarVecindad(x, y+1, coste+1)
+        NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
+        """
+        for i in range(0, self.sizeX): #TODO: cambiar valor inicial en initCostMatrix
+            for j in range(0, self.sizeY):
+                self.costMatrix[i, j] = -1
 
-                elif i == 1 and (self.costMatrix[x+1][y+1] == -2 or self.costMatrix[x+1][y+1] > coste + 1):
-                    self.costMatrix[x+1][y+1] = coste + 1
+        #Objetivo como mínimo
+        self.costMatrix[x_end, y_end] = 0
 
-                elif i == 2 and (self.costMatrix[x+1][y] == -2 or self.costMatrix[x+1][y] > coste):
-                    self.costMatrix[x+1][y] = coste
-                    self.comprobarVecindad(x + 1, y, coste + 1)
+        frente=list()
+        frente.append(((x_end, y_end)))#inicio frente onda
 
-                elif i == 3 and (self.costMatrix[x+1][y - 1] == -2 or self.costMatrix[x+1][y - 1] > coste + 1):
-                    self.costMatrix[x+1][y - 1] = coste + 1
-
-                elif i == 4 and (self.costMatrix[x][y - 1] == -2 or self.costMatrix[x][y - 1] > coste):
-                    self.costMatrix[x][y - 1] = coste
-                    self.comprobarVecindad(x, y - 1, coste + 1)
+        while frente.__len__()>0:
+            x_a,y_a=frente.pop(0)
+            onda_A = self.costMatrix[x_a,y_a] #peso del frente de onda actual
+            for i in range(0, 8): # visita vecinos
+                x_v,y_v = self.neighbour(x_a,y_a,i)
+                if x_v != -1 and y_v != -1: # el vecino existe
+                    if self.costMatrix[x_v,y_v] == -1 and self.isConnected(x_a,y_a,i): #no tiene coste asignado y esta conectado
+                        self.costMatrix[x_v,y_v] = onda_A + 1
+                        frente.append(((x_v,y_v)))
 
 
-                elif i == 5 and (self.costMatrix[x-1][y - 1] == -2 or self.costMatrix[x-1][y - 1] > coste + 1):
-                    self.costMatrix[x-1][y - 1] = coste + 1
-
-                elif i == 6 and (self.costMatrix[x-1][y] == -2 or self.costMatrix[x-1][y] > coste):
-                    self.costMatrix[x-1][y] = coste
-                    self.comprobarVecindad(x - 1, y, coste + 1)
-
-
-                elif i == 7 and (self.costMatrix[x-1][y + 1] == -2 or self.costMatrix[x-1][y + 1] > coste + 1):
-                    self.costMatrix[x-1][y + 1] = coste + 1
 
 
     def findPath(self, x_ini,  y_ini, x_end, y_end):
@@ -468,70 +488,32 @@ class Map2D:
         NOTE: Make sure self.currentPath is a 2D numpy array
         """
 
-        self.posicionXIni = x_ini
-        self.posicionYIni = y_ini
+        self.fillCostMatrix(x_end, y_end)
 
-        pathFound = False
-        self.currentPath = np.array( [ [x_ini,y_ini] ] )
-        step = self.cogerMenorVecino(x_ini, y_ini)
-        self.currentPath.append(step)
+        x_a, y_a = x_ini, y_ini  # posicion actual
 
-        if(step == [x_end, y_end]):
-            pathFound = True
+        pathFound = (x_a, y_a) == (x_end, y_end)
 
+        path = list()
+        path.append((x_a, y_a))
 
         while not pathFound:
-            step = self.cogerMenorVecino(step[0], step[1])
-            self.currentPath.append(step)
-            if (step == [x_end, y_end]):
-                pathFound = True
+            m_coste = np.Inf  # mejor coste
+            for i in range(0, 8):
+                x_v, y_v = self.neighbour(x_a, y_a, i)
+                if x_v != -1 and y_v != -1:  # el vecino existe
+                    if self.costMatrix[x_v, y_v] < m_coste and self.isConnected(x_a, y_a, i):
+                        # el peso es menor y esta conectado
+                        m_coste = self.costMatrix[x_v, y_v]
+                        m_vecino = x_v, y_v
+            path.append(m_vecino)
+            x_a, y_a = m_vecino
+            pathFound = (x_a, y_a) == (x_end, y_end)
 
+        self.currentPath = np.array(path)
 
         return pathFound
 
-    def cogerMenorVecino(self, x, y):
-        """7     0       1
-           6   (x,y)     2
-           5     4       3"""
-
-        min = self.costMatrix[x][y+1]
-        step = [0,0]
-        for i in range(0, 7):
-            if self.isConnected(x,y,i) :
-                if i == 0 and (self.costMatrix[x][y+1] != -2):
-                    min = self.costMatrix[x][y+1]
-                    step = [x, y+1]
-
-                elif i == 1 and self.costMatrix[x+1][y+1] != -2 and self.costMatrix[x+1][y+1] < min:
-                    min = self.costMatrix[x+1][y+1]
-                    step = [x+1, y+1]
-
-
-                elif i == 2 and self.costMatrix[x+1][y] != -2 and self.costMatrix[x+1][y] < min:
-                    min = self.costMatrix[x+1][y]
-                    step = [x+1, y]
-
-                elif i == 3 and self.costMatrix[x+1][y - 1] != -2 and self.costMatrix[x+1][y-1] < min:
-                    min = self.costMatrix[x+1][y - 1]
-                    step = [x+1, y - 1]
-
-                elif i == 4 and self.costMatrix[x][y - 1] != -2 and self.costMatrix[x][y-1] < min:
-                    min = self.costMatrix[x][y - 1]
-                    step = [x, y - 1]
-
-                elif i == 5 and self.costMatrix[x-1][y - 1] != -2 and self.costMatrix[x-1][y-1] < min:
-                    min = self.costMatrix[x-1][y - 1]
-                    step = [x-1, y - 1]
-
-                elif i == 6 and self.costMatrix[x-1][y] != -2 and self.costMatrix[x-1][y] < min:
-                    min = self.costMatrix[x-1][y]
-                    step = [x-1, y]
-
-                elif i == 7 and self.costMatrix[x-1][y + 1] != -2 and self.costMatrix[x-1][y+1] < min:
-                    min = self.costMatrix[x-1][y + 1]
-                    step = [x-1, y + 1]
-
-        return(step)
 
     def go(self, x, y):
         """
@@ -581,4 +563,3 @@ class Map2D:
 
     def replanPath(self, ??):
         """ TO-DO """
-

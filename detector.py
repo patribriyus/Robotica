@@ -8,7 +8,7 @@ Created on Sat Mar 20 20:29:04 2021
 import cv2
 
 
-def camInit():
+def detectorInit():
     # Setup default values for SimpleBlobDetector parameters.
     params = cv2.SimpleBlobDetector_Params()
     
@@ -28,19 +28,18 @@ def camInit():
     params.maxArea = 50000
     
     # Filter by Circularity
-    params.filterByCircularity = True
+    params.filterByCircularity = False
     params.minCircularity = 0.2
     
     # Filter by Convexity
     #params.filterByConvexity = False
-    params.filterByConvexity = True
+    params.filterByConvexity = False
     params.minConvexity = 0.1
     
     # Filter by Inertia
     #params.filterByInertia = False
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.01
-    
+    params.filterByInertia = False
+    params.minInertiaRatio = 0.01    
     
     # Create a detector with the parameters
     ver = (cv2.__version__).split('.')
