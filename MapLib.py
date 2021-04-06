@@ -512,7 +512,7 @@ class Map2D:
 
         self.currentPath = np.array(path)
 
-        return pathFound
+        return  self.currentPath
 
 
     def go(self, x, y):
@@ -550,13 +550,8 @@ class Map2D:
     #*******************************
 
     def initOjos(self):
-
         BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
         sensorOjos = BP.set_sensor_type(BP.PORT_1, BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
-
-
-
-
 
     def detectObstacle(self):
 

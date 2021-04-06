@@ -3,6 +3,7 @@
 import argparse
 import os
 import numpy as np
+from Robot import Robot
 import time
 
 import matplotlib
@@ -30,7 +31,7 @@ def main(args):
 
         map_file = args.mapfile;
         # Instantiate Odometry with your own files from P2/P3
-        # robot = Robot()
+        robot = Robot()
         # ...
 
         # 1. load map and compute costs and path
@@ -60,16 +61,28 @@ def main(args):
         myMap.drawMapWithRobotLocations( sampleRobotLocations, saveSnapshot=False )
 
         matplotlib.pyplot.close('all')
+        
         # 2. launch updateOdometry thread()
-        # robot.startOdometry()
-        # ...
-
+        robot.startOdometry()
+        camino = myMap.findPath(x_ini, y_ini, x_end, y_end) # TODO
 
         # 3. perform trajectory
-        # robot.setSpeed(1,1) ...
-        # while (not finished){
-
-            # robot.go(pathX[i],pathY[i]);
+        # robot.setSpeed(1,1) ...     
+        for i in camino:
+            
+            giro = myMap.go(i[0], i[1])
+            
+            # TODO: asegurarse que gira 'giro' radianes
+            robot.setSpeed(0, 0.3)
+            
+            hayObstaculo = myMap.detectObstacle()
+            if(hayObstaculo):
+                camino = myMap.replanPath()
+            
+            else:
+                # TODO: asegurarse que avanza 40cm's
+                robot.setSpeed(0.07, 0)
+                
             #TODO SET SPEEDS DE VELOCIDAD ANGULAR,
             # COMPROBAR OBJETO DELANTE, DESPUES VELOCIDAD LINEAL
             # Y COMPROBAR MEDIANTE ODOMETRIA SU LLEGADA
@@ -81,14 +94,10 @@ def main(args):
             # MIENTRAS HACEMOS ESTE PASO
             #Avoid_obstacle(...) OR RePlanPath(...)
 
-
-
-
-
         # 4. wrap up and close stuff ...
-        # This currently unconfigure the sensors, disable the motors,
+        # TODO: This currently unconfigure the sensors, disable the motors,
         # and restore the LED to the control of the BrickPi3 firmware.
-        # robot.stopOdometry()
+        robot.stopOdometry()
 
     except KeyboardInterrupt:
     # except the program gets interrupted by Ctrl+C on the keyboard.
