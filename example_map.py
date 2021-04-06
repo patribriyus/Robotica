@@ -77,7 +77,9 @@ def main(args):
 
             # check if there are close obstacles
             # deal with them...
-            # Avoid_obstacle(...) OR RePlanPath(...)
+            #TODO CADA PASO, SIEMPRE CADA PASO, OSEA QUE TENEMOS QUE DEAL CON EL OBSTACULO QUE NOS PPUEDAN PONER
+            # MIENTRAS HACEMOS ESTE PASO
+            #Avoid_obstacle(...) OR RePlanPath(...)
 
 
 
