@@ -499,7 +499,7 @@ class Map2D:
 
         while not pathFound:
             m_coste = np.Inf  # mejor coste
-            for i in range(0, 8):
+            for i in range(0, 7, 2):
                 x_v, y_v = self.neighbour(x_a, y_a, i)
                 if x_v != -1 and y_v != -1:  # el vecino existe
                     if self.costMatrix[x_v, y_v] < m_coste and self.isConnected(x_a, y_a, i):
