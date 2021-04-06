@@ -92,6 +92,8 @@ class Robot:
         self.cam.framerate = 32
         self.rawCapture = PiRGBArray(self.cam, size=(320, 240))
 
+        self.cestaArriba = 0
+
     def setSpeed(self, v, w):
         """ To be filled - These is all dummy sample code """
 
@@ -325,7 +327,7 @@ class Robot:
         
             # Show mask and blobs found
             cv2.imshow("Keypoints on RED", im_with_keypoints)
-            
+
             if x != 0: # kp -> la lista no esta vacia (es decir, ha detectado un blob)
                 
                 if not self.posObjetiva(kp.pt[0], kp.pt[1], kp.size):
@@ -350,7 +352,7 @@ class Robot:
                     break
                     
             else:
-                self.setSpeed(0, 0)
+                self.setSpeed(0, 0.2)
                 
         return True
     
@@ -370,5 +372,7 @@ class Robot:
             x, y, th = self.readOdometry()'''
             
         # Bajar cesta
-        #self.BP.set_motor_dps(self.BP.PORT_D, degrees(0.05))
+        if self.cestaArriba == 0:
+
+            self.BP.set_motor_dps(self.BP.PORT_B, degrees(0.05))
         #self.BP.set_motor_dps(self.BP.PORT_B, degrees(0.05))
