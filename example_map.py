@@ -11,6 +11,7 @@ matplotlib.use("TkAgg")
 
 # from Robot import Robot
 from MapLib import Map2D
+from Robot import Robot
 
 # NOTES ABOUT TASKS to DO in P4:
 # 1)findPath(x1,y1, x2,y2),   fillCostMatrix(), replanPath () --> should be methods from the new Map2D class
@@ -30,8 +31,7 @@ def main(args):
 
         map_file = args.mapfile;
         # Instantiate Odometry with your own files from P2/P3
-        # robot = Robot()
-        # ...
+        robot = Robot()
 
         # 1. load map and compute costs and path
         myMap = Map2D(map_file)
@@ -61,8 +61,8 @@ def main(args):
 
         matplotlib.pyplot.close('all')
         # 2. launch updateOdometry thread()
-        # robot.startOdometry()
-        # ...
+        robot.startOdometry()
+
 
 
         # 3. perform trajectory

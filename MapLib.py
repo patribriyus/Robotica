@@ -561,5 +561,5 @@ class Map2D:
     def detectObstacle(self):
 
 
-    def replanPath(self, ??):
+    #TODO def replanPath(self, ??):
         """ TO-DO """
