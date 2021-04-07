@@ -490,6 +490,9 @@ class Map2D:
 
         self.fillCostMatrix(x_end, y_end)
 
+        self.posicionXIni = x_ini
+        self.posicionYIni = y_ini
+
         x_a, y_a = x_ini, y_ini  # posicion actual
 
         pathFound = (x_a, y_a) == (x_end, y_end)
@@ -526,6 +529,10 @@ class Map2D:
 
         velocidadAngular = self.radianesMov[self.direccion][dirObj]
 
+        self.direccion = dirObj
+
+        return velocidadAngular
+
     def queDireccion(self, xObj, yObj):
 
         if(xObj < self.posicionXIni ):
@@ -550,11 +557,34 @@ class Map2D:
     #*******************************
 
     def initOjos(self):
-        BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
-        sensorOjos = BP.set_sensor_type(BP.PORT_1, BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
+        self.BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
+        sensorOjos = self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
 
     def detectObstacle(self):
+        """
+        :return: true si hay objetos delante, false si no
+        """
+        return self.BP.get_sensor(self.BP.PORT_3) < 40  #TODO los primeros valores son unrecognized data
+
+    def disableSensors(self):
+        """ Unconfigure the sensors, disable the motors,
+        and restore the LED to the control of the BrickPi3 firmware."""
+        self.BP.reset_all()
+
+    def replanPath(self, xFinal, yFinal):
+        """ actualiza la matriz de conexiones y hace replan """
+        if(self.direccion == Direcciones.ARRIBA):
+            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 0)
+        elif(self.direccion == Direcciones.DERECHA):
+            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 2)
+        elif (self.direccion == Direcciones.ABAJO):
+            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 4)
+        elif (self.direccion == Direcciones.IZQUIERDA):
+            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 6)
+
+        return self.findPath(self.posicionXIni, self.posicionYIni, xFinal, yFinal)
 
 
-    #TODO def replanPath(self, ??):
-        """ TO-DO """
+    def cambiarPosIni(self, newx, newy):
+        self.posicionXIni = newx
+        self.posicionYIni = newy
