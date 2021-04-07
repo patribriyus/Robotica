@@ -260,6 +260,7 @@ class Robot:
     # Stop the odometry thread.
     def stopOdometry(self):
         self.finished.value = True
+        self.setSpeed(0, 0)
         cv2.destroyAllWindows()
         # self.BP.reset_all()
         
@@ -307,7 +308,7 @@ class Robot:
             # clear the stream in preparation for the next frame
             self.rawCapture.truncate(0)
             k = cv2.waitKey(1) & 0xff
-            if k == ESC:
+            if k == ESC:    # TODO: cambiar para finalizar bien con ctrl+C
                 self.cam.close()
                 break
     
