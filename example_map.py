@@ -70,18 +70,19 @@ def main(args):
         yObj = 1  # TODO pedir por parametro
 
         camino = myMap.findPath(0, 0, xObj, yObj)
-        finished = False
+
         # 3. perform trajectory
-        # robot.setSpeed(1,1) ...
         print("datos camino", camino, len(camino))
         while len(camino) != 0:
             i = camino[0]
             camino = np.delete(camino, 0, 0)
             print("datos post-borrado de paso", camino, len(camino))
+            
             giro = myMap.go(i[0], i[1])
             print("tengo que girar: ", giro)
+            
             # TODO: asegurarse que gira lo que tiene que girar
-            robot.setSpeed(0, giro / 2)
+            robot.girarRadianes(giro)
 
             hayObstaculo = myMap.detectObstacle()
             print("hayObstaculo?", hayObstaculo)
@@ -89,8 +90,8 @@ def main(args):
                 camino = myMap.replanPath(xObj, yObj)
 
             else:
-                # TODO: asegurarse que avanza 40cm's
-                robot.setSpeed(0.04, 0)
+                # TODO: asegurarse que avanza 0.4 metros
+                robot.moverMetros(0.4)
 
                 myMap.cambiarPosIni(i[0], i[1])
 

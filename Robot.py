@@ -389,3 +389,34 @@ class Robot:
             self.moverCesta("BAJAR")
             
         # TODO: verificar si ha cogido correctamente la pelota
+            
+    def girarRadianes(self, radianes):
+        """ Gira al robot +-X radianes de su posicion """
+        # Se calculan los radianes mas actuales de cada una de las ruedas
+        [wl, wr] = [math.radians(self.BP.get_motor_encoder(self.BP.PORT_B)),
+                    math.radians(self.BP.get_motor_encoder(self.BP.PORT_C))]
+        
+        if(radianes < 0):       # negativo -> giro a la derecha
+            self.setSpeed(0, -0.4)
+            wObj = wr + math.abs(radianes)
+            while(wObj < wr):
+                time.sleep(self.P)
+                [wl, wr] = [math.radians(self.BP.get_motor_encoder(self.BP.PORT_B)),
+                            math.radians(self.BP.get_motor_encoder(self.BP.PORT_C))]
+                
+        elif(radianes > 0):     # positivo -> giro a la izquierda
+            self.setSpeed(0, 0.4)
+            wObj = wl + radianes
+            while(wObj < wl):
+                time.sleep(self.P)
+                [wl, wr] = [math.radians(self.BP.get_motor_encoder(self.BP.PORT_B)),
+                            math.radians(self.BP.get_motor_encoder(self.BP.PORT_C))]
+        
+        self.setSpeed(0, 0)
+        
+    
+    def moverMetros(self, m):
+        """ Mueve al robot +-X metros de su posicion """
+        if(radianes < 0):   # negativo -> giro a la derecha
+            dd
+        else:               # positivo -> giro a la izquierda
