@@ -48,7 +48,7 @@ def main(args):
         # sample commands to see how to draw the map
         sampleRobotLocations = [[0, 0, 0], [600, 600, 3.14]]
         # this will save a .png with the current map visualization,
-        #  all robot positions, last one in green
+        # all robot positions, last one in green
         # myMap.verbose = True
         myMap.drawMapWithRobotLocations(sampleRobotLocations, saveSnapshot=False)
 
@@ -73,13 +73,18 @@ def main(args):
         finished = False
         # 3. perform trajectory
         # robot.setSpeed(1,1) ...
+        print("datos camino", camino, len(camino))
         while len(camino) != 0:
-            i = camino.pop(0)
+            i = camino[0]
+            camino = np.delete(camino, 0, 0)
+            print("datos post-borrado de paso", camino, len(camino))
             giro = myMap.go(i[0], i[1])
-
+            print("tengo que girar: ", giro)
+            # TODO: asegurarse que gira lo que tiene que girar
             robot.setSpeed(0, giro / 2)
 
             hayObstaculo = myMap.detectObstacle()
+            print("hayObstaculo?", hayObstaculo)
             if (hayObstaculo):
                 camino = myMap.replanPath(xObj, yObj)
 

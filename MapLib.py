@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-from __future__ import print_function # use python 3 syntax but make it compatible with python 2
-from __future__ import division       #                           ''
+from __future__ import print_function  # use python 3 syntax but make it compatible with python 2
+from __future__ import division  # ''
 
 import matplotlib.pyplot as plt
 from matplotlib import animation
@@ -12,6 +12,8 @@ import math
 import os
 
 from enum import IntEnum
+
+
 class Direcciones(IntEnum):
     ARRIBA = 0
     ABAJO = 1
@@ -40,49 +42,49 @@ class Map2D:
         0 0 0 0 0 0 0
 
         """
+        self.BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
+
         # params to visualize
-        self.mapLineStyle='r-'
-        self.costValueStyle='g*'
+        self.mapLineStyle = 'r-'
+        self.costValueStyle = 'g*'
         self.verbose = True
         # set to False to stop displaying plots interactively (and maybe just save the screenshots)
         # self.verbose = False
         self.current_ax = None
 
         # variables about map params
-        self.sizeX=0
-        self.sizeY=0
-        self.sizeCell=0
+        self.sizeX = 0
+        self.sizeY = 0
+        self.sizeCell = 0
 
         # variables go
         self.direccion = Direcciones.ARRIBA
-        #[direccionInicial][direccionObjetivo]
-        #[ARRIBA, ABAJO, IZQUIERDA, DERECHA]
-        self.radianesMov = [[0, math.pi, math.pi/2, -math.pi/2], #ARRIBA
-                            [math.pi, 0, -math.pi/2, math.pi/2], #ABAJO
-                            [-math.pi/2, math.pi/2, 0, math.pi], #IZQUIERDA
-                            [math.pi/2, -math.pi/2, math.pi, 0]] #DERECHA
+        # [direccionInicial][direccionObjetivo]
+        # [ARRIBA, ABAJO, IZQUIERDA, DERECHA]
+        self.radianesMov = [[0, math.pi, math.pi / 2, -math.pi / 2],  # ARRIBA
+                            [math.pi, 0, -math.pi / 2, math.pi / 2],  # ABAJO
+                            [-math.pi / 2, math.pi / 2, 0, math.pi],  # IZQUIERDA
+                            [math.pi / 2, -math.pi / 2, math.pi, 0]]  # DERECHA
 
         # estas posiciones son relativas a la matriz
         self.posicionXIni = 0
         self.posicionYIni = 0
 
         # variables para cambio de trayectoria
-        self.distanciaEsperada=0
+        self.distanciaEsperada = 0
         self.sensorOjos = None
 
-
         self.connectionMatrix = None
-        self.costMatrix =  None
-        self.currentPath =  None
+        self.costMatrix = None
+        self.currentPath = None
 
         if self._loadMap(map_description_file):
             print("Map %s loaded ok" % map_description_file)
         else:
             print("Map %s NOT loaded" % map_description_file)
 
-
     # from python docs: https://docs.python.org/3/tutorial/classes.html#private-variables
-    # “Private” instance variables that cannot be accessed except from inside an object don’t exist in Python.
+    # ?Private? instance variables that cannot be accessed except from inside an object don?t exist in Python.
     # However, there is a convention that is followed by most Python code: a name prefixed with an underscore \
     # (e.g. _spam) should be treated as a non-public part of the API (whether it is a function, a method or a data member).
 
@@ -94,14 +96,14 @@ class Map2D:
         to initialize the matrix, we set all connections to be closed.
         When the file with the description is loaded, it will "open" (set to 1) the corresponding ones.
         """
-        self.connectionMatrix = np.ones( (2*self.sizeX+1, 2*self.sizeY+1) ) * init_value
+        self.connectionMatrix = np.ones((2 * self.sizeX + 1, 2 * self.sizeY + 1)) * init_value
 
     def _initCostMatrix(self, init_value=-2):
         """
         to initialize the matrix, we set all connections to be closed.
         When the file with the description is loaded, it will "open" (set to 1) the corresponding ones.
         """
-        self.costMatrix = np.ones( (self.sizeX, self.sizeY) ) * init_value
+        self.costMatrix = np.ones((self.sizeX, self.sizeY)) * init_value
 
         # Example costMatrix (filled manually!) for Map1
         # if we plan to go from 0,0 to 2,0
@@ -115,8 +117,6 @@ class Map2D:
         # self.costMatrix[2,1] = 5
         # self.costMatrix[0,0] = 6
 
-
-
     def _loadMap(self, mapFileName):
         """
         Load map from a txt file (mapFileName) to fill the map params and connectionMatrix. \
@@ -126,17 +126,17 @@ class Map2D:
         """
         try:
             # FILL GLOBAL VARIABLES dimX dimY cellSize
-            loadingOk=False
+            loadingOk = False
             mapF = open(mapFileName, "r")
 
             # 1. special case for first line. initialize dimX dimY cellSize
-            header = mapF.readline() #next()
-            tmp = header.split() # any whitespace string is a separator and empty strings are removed from the result
+            header = mapF.readline()  # next()
+            tmp = header.split()  # any whitespace string is a separator and empty strings are removed from the result
             if self.verbose:
                 print("Header line: %s " % header)
             parsed_header = [int(c) for c in tmp]
             # expected to have three numbers: sizeX sizeY sizeCell_in_mm
-            if len(parsed_header)==3:
+            if len(parsed_header) == 3:
                 self.sizeX, self.sizeY, self.sizeCell = parsed_header
             else:
                 print("Wrong header in map file: %s" % header)
@@ -149,7 +149,7 @@ class Map2D:
             # 3. load rest of the map connection lines information
             for indx, line in enumerate(mapF):
                 # we start loading from the file the "top" row of the map
-                current_row = (self.connectionMatrix.shape[1]-1) - indx
+                current_row = (self.connectionMatrix.shape[1] - 1) - indx
                 # Split numbers in the line. Any whitespace string is a separator and empty strings are removed from the result
                 tmp = line.split()
                 if self.verbose:
@@ -158,15 +158,15 @@ class Map2D:
 
                 if len(parsed_line) == self.connectionMatrix.shape[0] and indx < self.connectionMatrix.shape[1]:
                     self.connectionMatrix[:, current_row] = parsed_line
-                elif len(parsed_line): # don't give errors because of empty lines
-                    print("Wrong connectionMatrix (%s) row data: %s" % (self.connectionMatrix.shape(), line) )
+                elif len(parsed_line):  # don't give errors because of empty lines
+                    print("Wrong connectionMatrix (%s) row data: %s" % (self.connectionMatrix.shape(), line))
                     return False
             mapF.close()
             loadingOk = True
         except Exception as e:
             print("ERROR:", e.__doc__)
             print(e)
-            #raise
+            # raise
             loadingOk = False
 
         return loadingOk
@@ -181,19 +181,19 @@ class Map2D:
             (connX,connY): 2D coordinates (in the connectionMatrix!!) \
             of the connection of the input cell to the input neighbour
         """
-        connX=2*cellX+1
-        connY=2*cellY+1
+        connX = 2 * cellX + 1
+        connY = 2 * cellY + 1
         p = [connX, connY]
 
         result = {
-            0: lambda p: [ p[0],    p[1]+1],
-            1: lambda p: [ p[0]+1,  p[1]+1],
-            2: lambda p: [ p[0]+1,  p[1]],
-            3: lambda p: [ p[0]+1,  p[1]-1],
-            4: lambda p: [ p[0],    p[1]-1],
-            5: lambda p: [ p[0]-1,  p[1]-1],
-            6: lambda p: [ p[0]-1,  p[1]],
-            7: lambda p: [ p[0]-1,  p[1]+1],
+            0: lambda p: [p[0], p[1] + 1],
+            1: lambda p: [p[0] + 1, p[1] + 1],
+            2: lambda p: [p[0] + 1, p[1]],
+            3: lambda p: [p[0] + 1, p[1] - 1],
+            4: lambda p: [p[0], p[1] - 1],
+            5: lambda p: [p[0] - 1, p[1] - 1],
+            6: lambda p: [p[0] - 1, p[1]],
+            7: lambda p: [p[0] - 1, p[1] + 1],
         }
 
         return result[numNeigh](p)
@@ -201,10 +201,9 @@ class Map2D:
     def _pos2cell(self, x_mm, y_mm):
         """ Convert from robot odometry coordinates (in mm) to cell coordinates """
         # make sure we discretize the result to the closest lower integer value
-        x_cell = int(np.floor(x_mm/self.sizeCell))
-        y_cell = int(np.floor(y_mm/self.sizeCell))
+        x_cell = int(np.floor(x_mm / self.sizeCell))
+        y_cell = int(np.floor(y_mm / self.sizeCell))
         return [x_cell, y_cell]
-
 
     # ############################################################
     # public methods
@@ -215,7 +214,7 @@ class Map2D:
         """
         # from coordinates in the grid of cells to coordinates in the connection matrix
         [connX, connY] = self._cell2connCoord(cellX, cellY, numNeigh)
-        self.connectionMatrix[connX, connY]=1 # True
+        self.connectionMatrix[connX, connY] = 1  # True
 
     def deleteConnection(self, cellX, cellY, numNeigh):
         """
@@ -223,7 +222,7 @@ class Map2D:
         """
         # from coordinates in the grid of cells to coordinates in the connection matrix
         [connX, connY] = self._cell2connCoord(cellX, cellY, numNeigh)
-        self.connectionMatrix[connX, connY] = 0 # False
+        self.connectionMatrix[connX, connY] = 0  # False
 
     def isConnected(self, cellX, cellY, numNeigh):
         """
@@ -254,43 +253,42 @@ class Map2D:
         plt.grid(True)
         plt.tight_layout()
 
-        x_t = range(0, (self.sizeX+1)*400, 400)
-        y_t = range(0, (self.sizeY+1)*400, 400)
+        x_t = range(0, (self.sizeX + 1) * 400, 400)
+        y_t = range(0, (self.sizeY + 1) * 400, 400)
         x_labels = [str(n) for n in x_t]
         y_labels = [str(n) for n in y_t]
         plt.xticks(x_t, x_labels)
         plt.yticks(y_t, y_labels)
 
         # Main rectangle
-        X = np.array([0, self.sizeX, self.sizeX, 0,          0]) * self.sizeCell
-        Y = np.array([0, 0,          self.sizeY, self.sizeY, 0]) * self.sizeCell
+        X = np.array([0, self.sizeX, self.sizeX, 0, 0]) * self.sizeCell
+        Y = np.array([0, 0, self.sizeY, self.sizeY, 0]) * self.sizeCell
         self.current_ax.plot(X, Y, self.mapLineStyle)
 
         # "vertical" walls
-        for i in range(2, 2*self.sizeX, 2):
-            for j in range(1, 2*self.sizeY, 2):
-                if not self.connectionMatrix[i,j]:
+        for i in range(2, 2 * self.sizeX, 2):
+            for j in range(1, 2 * self.sizeY, 2):
+                if not self.connectionMatrix[i, j]:
                     # paint "right" wall from cell (i-1)/2, (j-1)/2
-                    cx= np.floor((i-1)/2)
-                    cy= np.floor((j-1)/2)
-                    X = np.array([cx+1, cx+1]) * self.sizeCell
-                    Y = np.array([cy, cy+1]) * self.sizeCell
+                    cx = np.floor((i - 1) / 2)
+                    cy = np.floor((j - 1) / 2)
+                    X = np.array([cx + 1, cx + 1]) * self.sizeCell
+                    Y = np.array([cy, cy + 1]) * self.sizeCell
                     self.current_ax.plot(X, Y, self.mapLineStyle)
 
         # "horizontal" walls
-        for j in range(2, 2*self.sizeY, 2):
-            for i in range(1, 2*self.sizeX, 2):
-                if not self.connectionMatrix[i,j]:
+        for j in range(2, 2 * self.sizeY, 2):
+            for i in range(1, 2 * self.sizeX, 2):
+                if not self.connectionMatrix[i, j]:
                     # paint "top" wall from cell (i-1)/2, (j-1)/2
-                    cx=np.floor((i-1)/2)
-                    cy=np.floor((j-1)/2)
-                    X = np.array([cx, cx+1]) * self.sizeCell
-                    Y = np.array([cy+1, cy+1]) * self.sizeCell
+                    cx = np.floor((i - 1) / 2)
+                    cy = np.floor((j - 1) / 2)
+                    X = np.array([cx, cx + 1]) * self.sizeCell
+                    Y = np.array([cy + 1, cy + 1]) * self.sizeCell
                     self.current_ax.plot(X, Y, self.mapLineStyle)
         plt.axis('equal')
 
         return True
-
 
     # aux functions to display the current CostMatrix on the map
     def _drawCostMatrix(self):
@@ -305,20 +303,19 @@ class Map2D:
         # "center" of each cell
         for i in range(0, self.sizeX):
             for j in range(0, self.sizeY):
-                    cx= i*self.sizeCell + self.sizeCell/2.
-                    cy= j*self.sizeCell + self.sizeCell/2.
-                    X = np.array([cx])
-                    Y = np.array([cy])
-                    cost = self.costMatrix[i,j]
-                    self.current_ax.text(X, Y, str(cost))
-
+                cx = i * self.sizeCell + self.sizeCell / 2.
+                cy = j * self.sizeCell + self.sizeCell / 2.
+                X = np.array([cx])
+                Y = np.array([cy])
+                cost = self.costMatrix[i, j]
+                self.current_ax.text(X, Y, str(cost))
 
         plt.axis('equal')
 
         return True
 
     # Dibuja robot en location_eje con color (c) y tamano (p/g)
-    def _drawRobot(self, loc_x_y_th=[0,0,0], robotPlotStyle='b', small=False):
+    def _drawRobot(self, loc_x_y_th=[0, 0, 0], robotPlotStyle='b', small=False):
         """
         UPDATES existing plot to include current robot position
         It expects an existing open figure (probably with the map already on it)
@@ -336,36 +333,36 @@ class Map2D:
         else:
             largo, corto, descentre = [160, 100, 10]
 
-        trasera_dcha=np.array([-largo,-corto,1])
-        trasera_izda=np.array([-largo,corto,1])
-        delantera_dcha=np.array([largo,-corto,1])
-        delantera_izda=np.array([largo,corto,1])
-        frontal_robot=np.array([largo,0,1])
+        trasera_dcha = np.array([-largo, -corto, 1])
+        trasera_izda = np.array([-largo, corto, 1])
+        delantera_dcha = np.array([largo, -corto, 1])
+        delantera_izda = np.array([largo, corto, 1])
+        frontal_robot = np.array([largo, 0, 1])
 
-        tita=loc_x_y_th[2]
-        Hwe=np.array([[np.cos(tita), -np.sin(tita), loc_x_y_th[0]],
-                 [np.sin(tita), np.cos(tita), loc_x_y_th[1]],
-                  [0,        0 ,        1]])
+        tita = loc_x_y_th[2]
+        Hwe = np.array([[np.cos(tita), -np.sin(tita), loc_x_y_th[0]],
+                        [np.sin(tita), np.cos(tita), loc_x_y_th[1]],
+                        [0, 0, 1]])
 
-        Hec=np.array([[1,0,descentre],
-                  [0,1,0],
-                  [0,0,1]])
+        Hec = np.array([[1, 0, descentre],
+                        [0, 1, 0],
+                        [0, 0, 1]])
 
-        extremos=np.array([trasera_izda, delantera_izda, delantera_dcha, trasera_dcha, trasera_izda, frontal_robot, trasera_dcha])
-        robot=np.dot(Hwe, np.dot(Hec,np.transpose(extremos)))
+        extremos = np.array(
+            [trasera_izda, delantera_izda, delantera_dcha, trasera_dcha, trasera_izda, frontal_robot, trasera_dcha])
+        robot = np.dot(Hwe, np.dot(Hec, np.transpose(extremos)))
 
-        self.current_ax.plot(robot[0,:], robot[1,:], robotPlotStyle)
+        self.current_ax.plot(robot[0, :], robot[1, :], robotPlotStyle)
 
         return True
 
     def drawMapWithRobotLocations(self,
-                                  robotPosVectors=[ [0,0,0], [600, 600, 3.14] ],
+                                  robotPosVectors=[[0, 0, 0], [600, 600, 3.14]],
                                   saveSnapshot=True):
         """ Overloaded version of drawMap to include robot positions """
         return self.drawMap(robotPosVectors=robotPosVectors, saveSnapshot=saveSnapshot)
 
-
-    def drawMap(self, robotPosVectors = None, saveSnapshot=False):
+    def drawMap(self, robotPosVectors=None, saveSnapshot=False):
         """
         Generates a plot with currently loaded map status
 
@@ -373,8 +370,8 @@ class Map2D:
         if verbose, it displays the plot
         if saveSnapshot: saves a figure as mapstatus_currenttimestamp_FIGNUM.png
         """
-        self.verbose=True
-        #self.verbose=False
+        self.verbose = True
+        # self.verbose=False
 
         # create a new figure and set it as current axis
         current_fig = plt.figure()
@@ -395,7 +392,7 @@ class Map2D:
 
         if saveSnapshot:
             ts = str(time.time())
-            snapshot_name = "mapstatus_"+ts+"_F"+str(current_fig.number)+".png"
+            snapshot_name = "mapstatus_" + ts + "_F" + str(current_fig.number) + ".png"
             print("saving %s " % snapshot_name)
             plt.savefig(snapshot_name)
 
@@ -408,7 +405,6 @@ class Map2D:
             current_fig.set_visible(False)
 
         return current_fig
-
 
     def findPath(self, point_ini, point_end):
         """ overloaded call to planPath (x_ini,  y_ini, x_end, y_end) """
@@ -448,8 +444,6 @@ class Map2D:
         else:
             return x_v, y_v
 
-
-
     def fillCostMatrix(self, x_end, y_end):
         """
         x_end, y_end: integer values that indicate \
@@ -457,30 +451,28 @@ class Map2D:
 
         NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
         """
-        for i in range(0, self.sizeX): #TODO: cambiar valor inicial en initCostMatrix
+        for i in range(0, self.sizeX):  # TODO: cambiar valor inicial en initCostMatrix
             for j in range(0, self.sizeY):
                 self.costMatrix[i, j] = -1
 
-        #Objetivo como mínimo
+        # Objetivo como mÃ­nimo
         self.costMatrix[x_end, y_end] = 0
 
-        frente=list()
-        frente.append(((x_end, y_end)))#inicio frente onda
+        frente = list()
+        frente.append(((x_end, y_end)))  # inicio frente onda
 
-        while frente.__len__()>0:
-            x_a,y_a=frente.pop(0)
-            onda_A = self.costMatrix[x_a,y_a] #peso del frente de onda actual
-            for i in range(0, 8): # visita vecinos
-                x_v,y_v = self.neighbour(x_a,y_a,i)
-                if x_v != -1 and y_v != -1: # el vecino existe
-                    if self.costMatrix[x_v,y_v] == -1 and self.isConnected(x_a,y_a,i): #no tiene coste asignado y esta conectado
-                        self.costMatrix[x_v,y_v] = onda_A + 1
-                        frente.append(((x_v,y_v)))
+        while frente.__len__() > 0:
+            x_a, y_a = frente.pop(0)
+            onda_A = self.costMatrix[x_a, y_a]  # peso del frente de onda actual
+            for i in range(0, 8):  # visita vecinos
+                x_v, y_v = self.neighbour(x_a, y_a, i)
+                if x_v != -1 and y_v != -1:  # el vecino existe
+                    if self.costMatrix[x_v, y_v] == -1 and self.isConnected(x_a, y_a,
+                                                                            i):  # no tiene coste asignado y esta conectado
+                        self.costMatrix[x_v, y_v] = onda_A + 1
+                        frente.append(((x_v, y_v)))
 
-
-
-
-    def findPath(self, x_ini,  y_ini, x_end, y_end):
+    def findPath(self, x_ini, y_ini, x_end, y_end):
         """
         x_ini, y_ini, x_end, y_end: integer values that indicate \
             the x and y coordinates of the starting (ini) and ending (end) cell
@@ -515,8 +507,7 @@ class Map2D:
 
         self.currentPath = np.array(path)
 
-        return  self.currentPath
-
+        return self.currentPath
 
     def go(self, x, y):
         """
@@ -524,7 +515,9 @@ class Map2D:
         :param y: posicion en y de la matriz objetiva
         :return: giro en radianes
         """
-        #chequear que mi dirección es la correcta para hacer una linea recta
+        # chequear que mi direccion es la correcta para hacer una linea recta
+
+        print("ESTO ES DENTOR DE GO ", x, y)
         dirObj = self.queDireccion(x, y)
 
         velocidadAngular = self.radianesMov[self.direccion][dirObj]
@@ -535,36 +528,38 @@ class Map2D:
 
     def queDireccion(self, xObj, yObj):
 
-        if(xObj < self.posicionXIni ):
+        if (xObj < self.posicionXIni):
 
-            return(Direcciones.IZQUIERDA)
+            return (Direcciones.IZQUIERDA)
 
-        elif(xObj > self.posicionXIni):
+        elif (xObj > self.posicionXIni):
 
             return (Direcciones.DERECHA)
 
-        elif(yObj < self.posicionYIni):
+        elif (yObj < self.posicionYIni):
 
             return (Direcciones.ABAJO)
 
-        elif(yObj > self.posicionYIni):
+        elif (yObj > self.posicionYIni):
 
             return (Direcciones.ARRIBA)
+        else:
+            return (self.direccion)
 
-
-    #*******************************
-    #************ V1 ***************
-    #*******************************
+    # *******************************
+    # ************ V1 ***************
+    # *******************************
 
     def initOjos(self):
-        self.BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
-        sensorOjos = self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
+        self.BP.set_sensor_type(self.BP.PORT_3,
+                                self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
 
     def detectObstacle(self):
         """
         :return: true si hay objetos delante, false si no
         """
-        return self.BP.get_sensor(self.BP.PORT_3) < 40  #TODO los primeros valores son unrecognized data
+
+        return self.BP.get_sensor(self.BP.PORT_3) < 40.0
 
     def disableSensors(self):
         """ Unconfigure the sensors, disable the motors,
@@ -573,9 +568,9 @@ class Map2D:
 
     def replanPath(self, xFinal, yFinal):
         """ actualiza la matriz de conexiones y hace replan """
-        if(self.direccion == Direcciones.ARRIBA):
+        if (self.direccion == Direcciones.ARRIBA):
             self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 0)
-        elif(self.direccion == Direcciones.DERECHA):
+        elif (self.direccion == Direcciones.DERECHA):
             self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 2)
         elif (self.direccion == Direcciones.ABAJO):
             self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 4)
@@ -583,7 +578,6 @@ class Map2D:
             self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 6)
 
         return self.findPath(self.posicionXIni, self.posicionYIni, xFinal, yFinal)
-
 
     def cambiarPosIni(self, newx, newy):
         self.posicionXIni = newx
