@@ -407,7 +407,7 @@ class Map2D:
         return current_fig
 
     def findPath(self, point_ini, point_end):
-        """ overloaded call to planPath (x_ini,  y_ini, x_end, y_end) """
+        """ overloaded call to findPath (x_ini,  y_ini, x_end, y_end) """
 
         return self.findPath(point_ini[0], point_ini[1],
                              point_end[0], point_end[1])
@@ -507,6 +507,8 @@ class Map2D:
 
         self.currentPath = np.array(path)
 
+        self.currentPath = np.delete(self.currentPath, 0, 0)
+
         return self.currentPath
 
     def go(self, x, y):
@@ -527,7 +529,8 @@ class Map2D:
         return velocidadAngular
 
     def queDireccion(self, xObj, yObj):
-
+        """ funcion auxiliar que nos dice a que dirección tiene que girar el robot para ir
+         desde la posicion inicial a la posicion objetivo"""
         if (xObj < self.posicionXIni):
 
             return (Direcciones.IZQUIERDA)
@@ -551,6 +554,7 @@ class Map2D:
     # *******************************
 
     def initOjos(self):
+        """ configuracion del sensor de los ojos"""
         self.BP.set_sensor_type(self.BP.PORT_3,
                                 self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
 
@@ -569,16 +573,18 @@ class Map2D:
     def replanPath(self, xFinal, yFinal):
         """ actualiza la matriz de conexiones y hace replan """
         if (self.direccion == Direcciones.ARRIBA):
-            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 0)
+            self.deleteConnection(self.posicionXIni, self.posicionYIni, 0)
         elif (self.direccion == Direcciones.DERECHA):
-            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 2)
+            self.deleteConnection(self.posicionXIni, self.posicionYIni, 2)
         elif (self.direccion == Direcciones.ABAJO):
-            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 4)
+            self.deleteConnection(self.posicionXIni, self.posicionYIni, 4)
         elif (self.direccion == Direcciones.IZQUIERDA):
-            self.deleteConnection(self, self.posicionXIni, self.posicionYIni, 6)
+            self.deleteConnection(self.posicionXIni, self.posicionYIni, 6)
 
         return self.findPath(self.posicionXIni, self.posicionYIni, xFinal, yFinal)
 
     def cambiarPosIni(self, newx, newy):
+        """ actualización de las variables globales posicionXIni y posicionYIni que nos
+         indican en que posicion se encuentra el robot"""
         self.posicionXIni = newx
         self.posicionYIni = newy

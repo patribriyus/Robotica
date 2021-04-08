@@ -52,11 +52,6 @@ def main(args):
         # myMap.verbose = True
         myMap.drawMapWithRobotLocations(sampleRobotLocations, saveSnapshot=False)
 
-        # this shows the current, and empty, map and an additionally closed connection
-        myMap.deleteConnection(0, 0, 0)
-        # myMap.verbose = True
-        myMap.drawMap(saveSnapshot=False)
-
         # this will open a window with the results, but does not work well remotely
         # myMap.verbose = True
         sampleRobotLocations = [[200, 200, 3.14 / 2.0], [200, 600, 3.14 / 4.0], [200, 1000, -3.14 / 2.0], ]
@@ -70,6 +65,7 @@ def main(args):
         yObj = 1  # TODO pedir por parametro
 
         camino = myMap.findPath(0, 0, xObj, yObj)
+        # primer paso es la posicion inicial, lo ignoramos
 
         # 3. perform trajectory
         print("datos camino", camino, len(camino))
@@ -77,11 +73,10 @@ def main(args):
             i = camino[0]
             camino = np.delete(camino, 0, 0)
             print("datos post-borrado de paso", camino, len(camino))
-            
+
             giro = myMap.go(i[0], i[1])
             print("tengo que girar: ", giro)
-            
-            # TODO: asegurarse que gira lo que tiene que girar
+
             robot.girarRadianes(giro)
 
             hayObstaculo = myMap.detectObstacle()
@@ -90,7 +85,6 @@ def main(args):
                 camino = myMap.replanPath(xObj, yObj)
 
             else:
-                # TODO: asegurarse que avanza 0.4 metros
                 robot.moverMetros(0.4)
 
                 myMap.cambiarPosIni(i[0], i[1])
