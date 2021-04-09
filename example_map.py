@@ -62,21 +62,21 @@ def main(args):
         # 2. launch updateOdometry thread()
         robot.startOdometry()
         xObj = 0  # TODO pedir por parametro
-        yObj = 1  # TODO pedir por parametro
+        yObj = 2  # TODO pedir por parametro
 
         camino = myMap.findPath(0, 0, xObj, yObj)
-        # primer paso es la posicion inicial, lo ignoramos
-
+        #primer paso es la posicion inicial, lo ignoramos
+        
         # 3. perform trajectory
         print("datos camino", camino, len(camino))
         while len(camino) != 0:
             i = camino[0]
             camino = np.delete(camino, 0, 0)
             print("datos post-borrado de paso", camino, len(camino))
-
+            
             giro = myMap.go(i[0], i[1])
             print("tengo que girar: ", giro)
-
+            
             robot.girarRadianes(giro)
 
             hayObstaculo = myMap.detectObstacle()

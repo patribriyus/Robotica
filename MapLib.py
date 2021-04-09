@@ -407,7 +407,7 @@ class Map2D:
         return current_fig
 
     def findPath(self, point_ini, point_end):
-        """ overloaded call to findPath (x_ini,  y_ini, x_end, y_end) """
+        """ overloaded call to planPath (x_ini,  y_ini, x_end, y_end) """
 
         return self.findPath(point_ini[0], point_ini[1],
                              point_end[0], point_end[1])
@@ -506,9 +506,10 @@ class Map2D:
             pathFound = (x_a, y_a) == (x_end, y_end)
 
         self.currentPath = np.array(path)
-
+        
         self.currentPath = np.delete(self.currentPath, 0, 0)
 
+        
         return self.currentPath
 
     def go(self, x, y):
@@ -529,8 +530,7 @@ class Map2D:
         return velocidadAngular
 
     def queDireccion(self, xObj, yObj):
-        """ funcion auxiliar que nos dice a que dirección tiene que girar el robot para ir
-         desde la posicion inicial a la posicion objetivo"""
+
         if (xObj < self.posicionXIni):
 
             return (Direcciones.IZQUIERDA)
@@ -547,22 +547,21 @@ class Map2D:
 
             return (Direcciones.ARRIBA)
         else:
-            return (self.direccion)
+            return(self.direccion)
 
     # *******************************
     # ************ V1 ***************
     # *******************************
 
     def initOjos(self):
-        """ configuracion del sensor de los ojos"""
-        self.BP.set_sensor_type(self.BP.PORT_3,
-                                self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
+        self.BP.set_sensor_type(self.BP.PORT_3, self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM) # Configure for an EV3 ultrasonic sensor.
 
     def detectObstacle(self):
         """
         :return: true si hay objetos delante, false si no
         """
 
+        
         return self.BP.get_sensor(self.BP.PORT_3) < 40.0
 
     def disableSensors(self):
@@ -584,7 +583,5 @@ class Map2D:
         return self.findPath(self.posicionXIni, self.posicionYIni, xFinal, yFinal)
 
     def cambiarPosIni(self, newx, newy):
-        """ actualización de las variables globales posicionXIni y posicionYIni que nos
-         indican en que posicion se encuentra el robot"""
         self.posicionXIni = newx
         self.posicionYIni = newy
