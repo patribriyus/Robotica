@@ -98,7 +98,7 @@ class Map2D:
         """
         self.connectionMatrix = np.ones((2 * self.sizeX + 1, 2 * self.sizeY + 1)) * init_value
 
-    def _initCostMatrix(self, init_value=-2):
+    def _initCostMatrix(self, init_value=-1):
         """
         to initialize the matrix, we set all connections to be closed.
         When the file with the description is loaded, it will "open" (set to 1) the corresponding ones.
@@ -451,10 +451,7 @@ class Map2D:
 
         NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
         """
-        for i in range(0, self.sizeX):  # TODO: cambiar valor inicial en initCostMatrix
-            for j in range(0, self.sizeY):
-                self.costMatrix[i, j] = -1
-
+ 
         # Objetivo como mÃ­nimo
         self.costMatrix[x_end, y_end] = 0
 
@@ -464,7 +461,7 @@ class Map2D:
         while frente.__len__() > 0:
             x_a, y_a = frente.pop(0)
             onda_A = self.costMatrix[x_a, y_a]  # peso del frente de onda actual
-            for i in range(0, 8):  # visita vecinos
+            for i in range(0, 7, 2):  # visita vecinos
                 x_v, y_v = self.neighbour(x_a, y_a, i)
                 if x_v != -1 and y_v != -1:  # el vecino existe
                     if self.costMatrix[x_v, y_v] == -1 and self.isConnected(x_a, y_a,
@@ -490,7 +487,6 @@ class Map2D:
         pathFound = (x_a, y_a) == (x_end, y_end)
 
         path = list()
-        path.append((x_a, y_a))
 
         while not pathFound:
             m_coste = np.Inf  # mejor coste
@@ -506,10 +502,7 @@ class Map2D:
             pathFound = (x_a, y_a) == (x_end, y_end)
 
         self.currentPath = np.array(path)
-        
-        self.currentPath = np.delete(self.currentPath, 0, 0)
 
-        
         return self.currentPath
 
     def go(self, x, y):
