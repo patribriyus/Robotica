@@ -400,23 +400,19 @@ class Robot:
             radObj = radObj - 2 * math.pi
         if radObj < -math.pi:
             radObj = radObj + 2 * math.pi
-        
+
+
         
         if(radianes < 0):
             #derecha
             self.setSpeed(0, -0.4)
-
-            while th not in range(radObj - 1, radObj + 1):
-                time.sleep(self.P)
-                x, y, th = self.readOdometry()
-
         elif(radianes > 0):
             #izquierda
             self.setSpeed(0, 0.4)
 
-            while th not in range(radObj - 1, radObj + 1):
-                time.sleep(self.P)
-                x, y, th = self.readOdometry()
+        while not (radObj - 0.1 < th < radObj + 0.1):
+            time.sleep(self.P)
+            x, y, th = self.readOdometry()
         
     def girarRadianes(self, radianes):
         """ Gira al robot +-X radianes de su posicion """
@@ -484,4 +480,26 @@ class Robot:
                 [wl, wr] = [math.radians(self.BP.get_motor_encoder(self.BP.PORT_B)),
                             math.radians(self.BP.get_motor_encoder(self.BP.PORT_C))]
         
+        self.setSpeed(0, 0)
+
+    def moverMetrosOdom(self, m):
+        """ Mueve al robot +-X metros de su posicion """
+        xIni,yIni,thIni = self.readOdometry();
+        error = 0.02 #error admitido en el movimiento (en metros)
+
+        if (m < 0):  # negativo -> hacia atras
+            v=-0.07
+        elif (m > 0):  # positivo -> hacia delante
+            v = 0.07
+
+        m=abs(m) #trabajar con distancias absolutas
+        self.setSpeed(v, 0)
+        x,y,th=self.readOdometry();
+        desp = np.sqrt((x-xIni)**2+(y-yIni)**2) # por trigonometria (hipotenusa),
+        # desp es la distancia recorrida
+        while not (m - error < desp < m + error):
+            time.sleep(self.P)
+            x, y, th = self.readOdometry();
+            desp = np.sqrt((x - xIni) ** 2 + (y - yIni) ** 2)
+
         self.setSpeed(0, 0)
