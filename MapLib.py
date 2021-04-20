@@ -6,7 +6,7 @@ from __future__ import division  # ''
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np
-import brickpi3  # import the BrickPi3 drivers
+#import brickpi3  # import the BrickPi3 drivers
 import time
 import math
 import os
@@ -42,7 +42,7 @@ class Map2D:
         0 0 0 0 0 0 0
 
         """
-        self.BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
+        #self.BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
         # params to visualize
         self.mapLineStyle = 'r-'
@@ -451,7 +451,7 @@ class Map2D:
 
         NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
         """
- 
+
         # Objetivo como mÃ­nimo
         self.costMatrix[x_end, y_end] = 0
 
