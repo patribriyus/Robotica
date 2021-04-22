@@ -1,46 +1,60 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import argparse
+import os
+import cv2
 import time
 from Robot import Robot
 from MapLib import Map2D
 import numpy as np
+from sample_matching import find_template, match_images, drawMatches2
 
-def movimientoConObstaculos(camino, myMap, robot):
+
+def movimientoConObstaculos(camino, myMap, robot, xObj, yObj):
     while len(camino) != 0:
-            i = camino[0]
-            camino = np.delete(camino, 0, 0)
-            print("datos post-borrado de paso", camino, len(camino))
+        i = camino[0]
+        camino = np.delete(camino, 0, 0)
+        print("datos post-borrado de paso", camino, len(camino))
 
-            giro = myMap.go(i[0], i[1])
-            print("tengo que girar: ", giro)
+        giro = myMap.go(i[0], i[1])
+        print("tengo que girar: ", giro)
 
-            robot.girarRadianesOdom(giro)
+        robot.girarRadianesOdom(giro)
 
-            hayObstaculo = myMap.detectObstacle()
-            print("hayObstaculo?", hayObstaculo)
-            if (hayObstaculo):
-                camino = myMap.replanPath(xObj, yObj)
+        hayObstaculo = myMap.detectObstacle()
+        print("hayObstaculo?", hayObstaculo)
+        if (hayObstaculo):
+            camino = myMap.replanPath(xObj, yObj)
 
-            else:
-                robot.moverMetrosOdom(0.4)
-
-                myMap.cambiarPosIni(i[0], i[1])
-
-def movimientoBasico(camino, myMap, robot):
-    while len(camino) != 0:
-            i = camino[0]
-            camino = np.delete(camino, 0, 0)
-            print("datos post-borrado de paso", camino, len(camino))
-
-            giro = myMap.go(i[0], i[1])
-            print("tengo que girar: ", giro)
-
-            robot.girarRadianesOdom(giro)
-
+        else:
             robot.moverMetrosOdom(0.4)
 
             myMap.cambiarPosIni(i[0], i[1])
+
+#Si izqODer = true -> izquierda
+def orientarRobot(x, y, th, myMap, robot):
+    #primero ir rectos hacia adelante y aumentar (o reducir) la x hasta 2200
+
+    #segundo ajustar nuestra y a la posición 1800
+    # si nuestra y es menor, girar a la izquierda, si es mayor, a la derecha
+
+    #por último, mirar de frente e intentaremos matching
+
+def movimientoBasico(camino, myMap, robot):
+    while len(camino) != 0:
+        i = camino[0]
+        camino = np.delete(camino, 0, 0)
+        print("datos post-borrado de paso", camino, len(camino))
+
+        giro = myMap.go(i[0], i[1])
+        print("tengo que girar: ", giro)
+
+        robot.girarRadianesOdom(giro)
+
+        robot.moverMetrosOdom(0.4)
+
+        myMap.cambiarPosIni(i[0], i[1])
+
 
 def main(args):
     try:
@@ -49,9 +63,11 @@ def main(args):
         robot = Robot()
         # 1. launch updateOdometry thread()
         robot.startOdometry()
+        ap = argparse.ArgumentParser()
+        ap.add_argument("-i", "--image", default=None, help="path to the input image")
 
-        #TODO: definir las variables diametro objetivo.
-        #robot.moverCesta("SUBIR") # Se sube la cesta
+        # TODO: definir las variables diametro objetivo.
+        # robot.moverCesta("SUBIR") # Se sube la cesta
         # 2. Loop running the tracking until ??, then catch the ball
         # TO-DO: ADD to the Robot class a method to track an object, given certain parameters
         # for example the different target properties we want (size, position, color, ..)
@@ -65,52 +81,82 @@ def main(args):
             map_file = "./mapaA_CARRERA.txt"
             myMap = Map2D(map_file)
             myMap.initOjos()
+            ap.add_argument("-r", "--robot", default="BB8_s.png", help="target template file")
 
-
-
-            #TODO trayectoria en S empezamos en el 600 2600
+            # trayectoria en S empezamos en el 600 2600
 
             camino = myMap.findPath(1, 6, 0, 6)
-
             movimientoBasico(camino, myMap, robot)
 
             camino = myMap.findPath(0, 6, 0, 4)
-
             movimientoBasico(camino, myMap, robot)
+
             camino = myMap.findPath(0, 4, 2, 4)
-
-
-            movimientoBasico(camino, myMap, robot)
-            camino = myMap.findPath(2, 4, 2, 2);
-
             movimientoBasico(camino, myMap, robot)
 
-            camino = myMap.findPath(2, 2, 1, 2);
-
+            camino = myMap.findPath(2, 4, 2, 2)
             movimientoBasico(camino, myMap, robot)
 
+            camino = myMap.findPath(2, 2, 1, 2)
+            movimientoBasico(camino, myMap, robot)
 
+            # ir a la casilla de finPlan con replan
 
+            camino = myMap.findPath(1, 2, 3, 2)
+            movimientoConObstaculos(camino, myMap, robot, 3, 2)
+
+            # perseguir blob
+
+            res = robot.trackObject()
+            if res:
+                robot.catch()
+
+            # colocarnos en una x, y y theta concreta
+
+            x, y, th = robot.readOdometry()
+            orientarRobot(x, y, th, myMap, robot)
+
+            # buscar robots
+
+            found = matchingPhoto(ap)
+            # si hacemos matching, mirar y salir por la izquierda
 
         else:
             print("Color negro")
             map_file = "./mapaB_CARRERA.txt"
             myMap = Map2D(map_file)
             myMap.initOjos()
+            ap.add_argument("-r", "--robot", default="R2-D2_s.png", help="target template file")
 
-            #TODO trayectoria en S invertida
+            # trayectoria en S invertida
 
             camino = myMap.findPath(5, 6, 6, 6)
             movimientoBasico(camino, myMap, robot)
+
             camino = myMap.findPath(6, 6, 6, 4)
             movimientoBasico(camino, myMap, robot)
+
             camino = myMap.findPath(6, 4, 4, 4)
             movimientoBasico(camino, myMap, robot)
-            camino = myMap.findPath(4, 4, 4, 2);
-            movimientoBasico(camino, myMap, robot)
-            camino = myMap.findPath(4, 2, 5, 2);
+
+            camino = myMap.findPath(4, 4, 4, 2)
             movimientoBasico(camino, myMap, robot)
 
+            camino = myMap.findPath(4, 2, 5, 2)
+            movimientoBasico(camino, myMap, robot)
+
+            # ir a la casilla de finPlan con replan
+
+            camino = myMap.findPath(5, 2, 3, 2)
+            movimientoConObstaculos(camino, myMap, robot, 3, 2)
+
+            # perseguir blob
+
+            res = robot.trackObject()
+            if res:
+                robot.catch()
+
+            # colocarnos en una x, y y theta concreta y buscar robots
 
         robot.disableLuz()
 
@@ -121,14 +167,34 @@ def main(args):
 
 
     except KeyboardInterrupt:
-    # except the program gets interrupted by Ctrl+C on the keyboard.
-    # THIS IS IMPORTANT if we want that motors STOP when we Ctrl+C ...
+        # except the program gets interrupted by Ctrl+C on the keyboard.
+        # THIS IS IMPORTANT if we want that motors STOP when we Ctrl+C ...
         robot.setSpeed(0, 0)
         robot.disableLuz()
         robot.stopOdometry()
 
-if __name__ == "__main__":
 
+def matchingPhoto(ap):
+    args = ap.parse_args()
+    # default values
+    im = None
+    mirror = True
+    if args.image is not None:
+        if not os.path.isfile(args.image):
+            print("test image %s does not exist" % args.image);
+            return
+        im = cv2.imread(args.image, cv2.IMREAD_COLOR)
+        mirror = False
+    if not os.path.isfile(args.robot):
+        print("target template image %s does not exist" % args.robot);
+        return
+    else:
+        target_robot_file = args.robot
+    found = find_template(mirror=mirror, img=im, refFilename=target_robot_file)
+    return found
+
+
+if __name__ == "__main__":
     # get and parse arguments passed to main
     # Add as many args as you need ...
     parser = argparse.ArgumentParser()
