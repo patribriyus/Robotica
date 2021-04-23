@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 import argparse
+import math
 import os
 import cv2
 import time
@@ -31,14 +32,28 @@ def movimientoConObstaculos(camino, myMap, robot, xObj, yObj):
 
             myMap.cambiarPosIni(i[0], i[1])
 
-#Si izqODer = true -> izquierda
-def orientarRobot(x, y, th, myMap, robot):
-    #primero ir rectos hacia adelante y aumentar (o reducir) la x hasta 2200
 
-    #segundo ajustar nuestra y a la posición 1800
-    # si nuestra y es menor, girar a la izquierda, si es mayor, a la derecha
+# Si izqODer = true -> izquierda
+def orientarRobot(x, y, th, xObj, yObj, thObj, myMap, robot):
+    # primero ir rectos hacia adelante y aumentar (o reducir) la x hasta 2200
+    if th != thObj:
+        robot.girarRadianesOdom(th*-1)
+    if x != xObj:
+        robot.moverMetrosOdom((x - xObj) * -1) #si está en -0,6 se mueve 0
+        # si está en -0.9 dará -0.3, pero tiene que ir hacia adelante, por eso el -1
+        #si está en -0.3 dará 0.3, pero tiene que ir hacia atrás
 
-    #por último, mirar de frente e intentaremos matching
+    # segundo ajustar nuestra y a la posición 1800
+    if y < yObj:
+        robot.girarRadianesOdom(math.pi/2)
+        robot.moverMetrosOdom((y - yObj) * -1)
+        robot.girarRadianesOdom(-math.pi / 2)
+    elif y > yObj:
+        robot.girarRadianesOdom(-math.pi / 2)
+        robot.moverMetrosOdom((y - yObj) * -1)
+        robot.girarRadianesOdom(math.pi / 2)
+
+
 
 def movimientoBasico(camino, myMap, robot):
     while len(camino) != 0:
@@ -111,15 +126,34 @@ def main(args):
             if res:
                 robot.catch()
 
-            # colocarnos en una x, y y theta concreta
+            # colocarnos en una x, y y theta concreta (la x e y concreta es delante del robot de la izquierda)
 
             x, y, th = robot.readOdometry()
-            orientarRobot(x, y, th, myMap, robot)
-
-            # buscar robots
+            orientarRobot(x, y, th, myMap, -0.4, -1.2, 0, robot)
 
             found = matchingPhoto(ap)
             # si hacemos matching, mirar y salir por la izquierda
+            if found:
+                #salir por la izquierda
+                robot.girarRadianesOdom(math.pi/2)
+                robot.moverMetrosOdom(0.4)
+                robot.girarRadianesOdom(-math.pi/2)
+                robot.moverMetrosOdom(0.8)
+
+            else:
+                #movernos a la derecha y salir a la derecha
+                orientarRobot(x, y, th, myMap, -0.4, -1.6, 0, robot)
+                found = matchingPhoto(ap)
+                if not found:
+                    #TODO problemas serios
+                    # no hemos visto nada, podemos probar a girar sobre nosotros mismos hasta verlo
+                    robot.setSpeed(0, 0.2)
+                #salir por la derecha
+
+                robot.girarRadianesOdom(-math.pi/2)
+                robot.moverMetrosOdom(0.4)
+                robot.girarRadianesOdom(math.pi/2)
+                robot.moverMetrosOdom(0.8)
 
         else:
             print("Color negro")
@@ -203,5 +237,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args)
-
-
