@@ -149,8 +149,9 @@ class Robot:
         self.WR = wr
         matrixW = np.array([[y / self.P], [x / self.P]])
         matrixVW = np.dot(matrixRL, matrixW)
-        print("WR:", y / self.P, "WL:", x / self.P)
-        print("V:", matrixVW[0, 0], "w:", matrixVW[1, 0])
+        #TODO: descomentar
+        #print("WR:", y / self.P, "WL:", x / self.P)
+        #print("V:", matrixVW[0, 0], "w:", matrixVW[1, 0])
         return matrixVW[0, 0], matrixVW[1, 0]
 
     def readOdometry(self):
@@ -176,8 +177,9 @@ class Robot:
             # compute updates
 
             ######## UPDATE FROM HERE with your code (following the suggested scheme) ########
-            sys.stdout.write("Update of odometry ...., X=  %.2f, \
-                Y=  %.2f, th=  %.2f \n" % (self.x.value, self.y.value, self.th.value))
+           #TODO: descomentar
+                # sys.stdout.write("Update of odometry ...., X=  %.2f, \
+                # Y=  %.2f, th=  %.2f \n" % (self.x.value, self.y.value, self.th.value))
             # print("Dummy update of odometry ...., X=  %.2f" %(self.x.value) )
 
             # update odometry uses values that require mutex
@@ -357,7 +359,7 @@ class Robot:
 
             else:
                 # Si no encuentra la pelota, da vueltas sobre si mismo
-                self.setSpeed(0, 1.2)
+                self.setSpeed(0, 0.8)
                 # self.setSpeed(0, 0)
 
         return True
@@ -391,7 +393,7 @@ class Robot:
         # TODO: verificar si ha cogido correctamente la pelota
 
     def girarRadianesOdom(self, radianes):
-
+    #TODO: revisar
         x, y, th = self.readOdometry()
 
         radObj = th + radianes
@@ -409,9 +411,11 @@ class Robot:
             # izquierda
             self.setSpeed(0, 0.7)
 
-        while not (radObj - 0.1 < th < radObj + 0.1):
+        while not (radObj - 0.08 < th < radObj + 0.08):
             time.sleep(self.P)
             x, y, th = self.readOdometry()
+
+        self.setSpeed(0, 0)
 
     def girarRadianes(self, radianes):
         """ Gira al robot +-X radianes de su posicion """
@@ -482,24 +486,23 @@ class Robot:
 
     def moverMetrosOdom(self, m):
         """ Mueve al robot +-X metros de su posicion """
-        xIni, yIni, thIni = self.readOdometry();
-        error = 0.02  # error admitido en el movimiento (en metros)
+        xIni, yIni, thIni = self.readOdometry()
+        error = 0.01  # error admitido en el movimiento (en metros)
 
         if (m < 0):  # negativo -> hacia atras
-            v = -0.07
+            v = -0.09
         elif (m > 0):  # positivo -> hacia delante
-            v = 0.07
+            v = 0.09
 
         m = abs(m)  # trabajar con distancias absolutas
         self.setSpeed(v, 0)
-        x, y, th = self.readOdometry();
+        x, y, th = self.readOdometry()
         desp = np.sqrt((x - xIni) ** 2 + (y - yIni) ** 2)  # por trigonometria (hipotenusa),
         # desp es la distancia recorrida
-        print('Inicio bucle mov')  # TODO quitar
 
         while not (m - error < desp < m + error):
             time.sleep(self.P)
-            x, y, th = self.readOdometry();
+            x, y, th = self.readOdometry()
             desp = np.sqrt((x - xIni) ** 2 + (y - yIni) ** 2)
 
         self.setSpeed(0, 0)
