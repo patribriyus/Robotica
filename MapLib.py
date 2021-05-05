@@ -6,7 +6,7 @@ from __future__ import division  # ''
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import numpy as np
-#import brickpi3  # import the BrickPi3 drivers
+import brickpi3  # import the BrickPi3 drivers
 import time
 import math
 import os
@@ -42,7 +42,7 @@ class Map2D:
         0 0 0 0 0 0 0
 
         """
-        #self.BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
+        self.BP = brickpi3.BrickPi3()  # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
 
         # params to visualize
         self.mapLineStyle = 'r-'
@@ -451,8 +451,11 @@ class Map2D:
 
         NOTE: Make sure self.costMatrix is a 2D numpy array of dimensions dimX x dimY
         """
+        for i in range(0, self.sizeX):  # TODO: cambiar valor inicial en initCostMatrix
+            for j in range(0, self.sizeY):
+                self.costMatrix[i, j] = -1
 
-        # Objetivo como mÃ­nimo
+        # Objetivo como minimo
         self.costMatrix[x_end, y_end] = 0
 
         frente = list()
@@ -513,7 +516,6 @@ class Map2D:
         """
         # chequear que mi direccion es la correcta para hacer una linea recta
 
-        print("ESTO ES DENTOR DE GO ", x, y)
         dirObj = self.queDireccion(x, y)
 
         velocidadAngular = self.radianesMov[self.direccion][dirObj]
@@ -540,22 +542,22 @@ class Map2D:
 
             return (Direcciones.ARRIBA)
         else:
-            return(self.direccion)
+            return (self.direccion)
 
     # *******************************
     # ************ V1 ***************
     # *******************************
 
     def initOjos(self):
-        self.BP.set_sensor_type(self.BP.PORT_3, self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM) # Configure for an EV3 ultrasonic sensor.
+        self.BP.set_sensor_type(self.BP.PORT_3,
+                                self.BP.SENSOR_TYPE.EV3_ULTRASONIC_CM)  # Configure for an EV3 ultrasonic sensor.
 
     def detectObstacle(self):
         """
         :return: true si hay objetos delante, false si no
         """
 
-        
-        return self.BP.get_sensor(self.BP.PORT_3) < 40.0
+        return self.BP.get_sensor(self.BP.PORT_3) < 30.0
 
     def disableSensors(self):
         """ Unconfigure the sensors, disable the motors,
@@ -578,3 +580,12 @@ class Map2D:
     def cambiarPosIni(self, newx, newy):
         self.posicionXIni = newx
         self.posicionYIni = newy
+
+    def getDistanciaOjos(self):
+        """
+        :return: true si hay objetos delante, false si no
+        """
+
+        return self.BP.get_sensor(self.BP.PORT_3)
+
+

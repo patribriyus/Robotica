@@ -29,7 +29,7 @@ x_min = 175.0
 x_max = 181.0
 
 y_min = 200.0
-y_max = 217.0
+y_max = 350.0
 
 d_min = 93.0
 d_max = 106.0
@@ -149,9 +149,9 @@ class Robot:
         self.WR = wr
         matrixW = np.array([[y / self.P], [x / self.P]])
         matrixVW = np.dot(matrixRL, matrixW)
-        #TODO: descomentar
-        #print("WR:", y / self.P, "WL:", x / self.P)
-        #print("V:", matrixVW[0, 0], "w:", matrixVW[1, 0])
+        # TODO: descomentar
+        # print("WR:", y / self.P, "WL:", x / self.P)
+        # print("V:", matrixVW[0, 0], "w:", matrixVW[1, 0])
         return matrixVW[0, 0], matrixVW[1, 0]
 
     def readOdometry(self):
@@ -177,9 +177,9 @@ class Robot:
             # compute updates
 
             ######## UPDATE FROM HERE with your code (following the suggested scheme) ########
-           #TODO: descomentar
-                # sys.stdout.write("Update of odometry ...., X=  %.2f, \
-                # Y=  %.2f, th=  %.2f \n" % (self.x.value, self.y.value, self.th.value))
+            # TODO: descomentar
+            # sys.stdout.write("Update of odometry ...., X=  %.2f, \
+            # Y=  %.2f, th=  %.2f \n" % (self.x.value, self.y.value, self.th.value))
             # print("Dummy update of odometry ...., X=  %.2f" %(self.x.value) )
 
             # update odometry uses values that require mutex
@@ -329,9 +329,13 @@ class Robot:
             # "y":the y coordinate of each blob in the image.
             # "size":the diameter of the circle containing the blob.
             blobVacio = True
+            max = 0
             for kp in keypoints_red:
-                blobVacio = False
-                print(kp.pt[0], kp.pt[1], kp.size)
+                if (max < kp.size):
+                    blobVacio = False
+                    max = kp.size
+                    print(kp.pt[0], kp.pt[1], kp.size)
+                    kp_obj = kp
 
             # TODO: elegir blob
 
@@ -343,13 +347,13 @@ class Robot:
 
             if not blobVacio:  # si ha detectado un blob, entra
 
-                if not self.posObjetiva(kp.pt[0], kp.pt[1], kp.size):
+                if not self.posObjetiva(kp_obj.pt[0], kp_obj.pt[1], kp_obj.size):
                     print("NO es posicion objetiva")
 
-                    if kp.pt[0] < x_min or kp.pt[0] >= x_max:
-                        self.velAng(kp.pt[0])
+                    if kp_obj.pt[0] < x_min or kp_obj.pt[0] >= x_max:
+                        self.velAng(kp_obj.pt[0])
                     else:
-                        self.velLin(kp.size)
+                        self.velLin(kp_obj.size)
 
                 else:
                     print(" Posicion objetiva")
@@ -364,6 +368,102 @@ class Robot:
 
         return True
 
+    def posObjetivaReset(self, xBlob, yBlob, dBlob):
+
+        x = xBlob >= 193.5 and xBlob < 195
+        y = yBlob >= 144 and yBlob < 145
+        # area = math.pi * math.pow(radioBlob,2)
+        d = dBlob >= 81.5 and dBlob < 82.5
+        # return y
+        return x
+
+    def resetOdom(self):
+        """ Esta funcion persigue la pelota roja hasta una posicion objetivo """
+
+        xObj_min = 193.5
+        xObj_max = 195
+        yObj_min = 144
+        yObj_max = 145
+        aObj_min = 81.5
+        aObj_max = 82.5
+
+        # Elegimos el umbral de rojo en HSV
+        redMin1 = (175, 100, 75)
+        redMax1 = (179, 255, 255)
+        # Elegimos el segundo umbral de rojo en HSV
+        redMin2 = (0, 100, 100)
+        redMax2 = (8, 255, 255)
+
+        detector = detectorInit()
+
+        for img in self.cam.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
+            img = img.array
+            # clear the stream in preparation for the next frame
+            self.rawCapture.truncate(0)
+            k = cv2.waitKey(1) & 0xff
+            if k == ESC:  # TODO: cambiar para finalizar bien con ctrl+C
+                self.cam.close()
+                break
+
+            img_HSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+            # hacemos la mask y filtramos en la original
+            mask1 = cv2.inRange(img_HSV, redMin1, redMax1)
+            mask2 = cv2.inRange(img_HSV, redMin2, redMax2)
+            mask_red = mask1 + mask2
+
+            # detector finds "dark" blobs by default, so invert image for results with same detector
+            keypoints_red = detector.detect(mask_red)
+
+            # documentation of SimpleBlobDetector is not clear on what kp.size is exactly, but it looks like the diameter of the blob.
+            # "x":the x coordinate of each blob in the image.
+            # "y":the y coordinate of each blob in the image.
+            # "size":the diameter of the circle containing the blob.
+            blobVacio = True
+            max = 0
+            for kp in keypoints_red:
+                if (max < kp.size):
+                    blobVacio = False
+                    max = kp.size
+                    print(kp.pt[0], kp.pt[1], kp.size)
+                    kp_obj = kp
+
+            # TODO: elegir blob
+
+            im_with_keypoints = cv2.drawKeypoints(img, keypoints_red, np.array([]),
+                                                  (255, 255, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+            # Show mask and blobs found
+            cv2.imshow("Keypoints on RED", im_with_keypoints)
+
+            if not blobVacio:  # si ha detectado un blob, entra
+
+                if not (180 < kp_obj.pt[0] < 190):  # kp_obj.pt[0] > 190 or kp_obj.pt[0] < 180:
+                    print("NO es posicion objetiva")
+
+                    # if kp_obj.pt[0] > xObj_min:
+                    self.setSpeed(0, 0.3)
+
+                else:
+                    print(" Posicion objetiva")
+                    self.setSpeed(0, 0)
+                    # TODO: antes de salir del for volver a comprobar si la
+                    # la pelota sigue en su posicion objetiva
+                    break
+
+            else:
+                # Si no encuentra la pelota, da vueltas sobre si mismo
+                self.setSpeed(0, 0.7)
+                # self.setSpeed(0, 0)
+
+            self.lock_odometry.acquire()
+            self.x.value = -1.6
+            self.y.value = 0.0
+            self.th.value = 0
+            self.lock_odometry.release()
+
+        return True
+
     def moverCesta(self, movimiento):
         """Mueve la cesta hacia arriba o hacia abajo"""
         if movimiento == "SUBIR":
@@ -374,7 +474,7 @@ class Robot:
 
         else:  # "BAJAR"
             self.setSpeedCesta(0.05, 0)
-            time.sleep(0.55)
+            time.sleep(0.50)
             self.setSpeedCesta(0.0, 0)
             self.cestaArriba = False
 
@@ -393,7 +493,7 @@ class Robot:
         # TODO: verificar si ha cogido correctamente la pelota
 
     def girarRadianesOdom(self, radianes):
-    #TODO: revisar
+        # TODO: revisar
         x, y, th = self.readOdometry()
 
         radObj = th + radianes
@@ -406,10 +506,10 @@ class Robot:
 
         if (radianes < 0):
             # derecha
-            self.setSpeed(0, -0.7)
+            self.setSpeed(0, -0.75)
         elif (radianes > 0):
             # izquierda
-            self.setSpeed(0, 0.7)
+            self.setSpeed(0, 0.75)
 
         while not (radObj - 0.08 < th < radObj + 0.08):
             time.sleep(self.P)
@@ -488,6 +588,7 @@ class Robot:
         """ Mueve al robot +-X metros de su posicion """
         xIni, yIni, thIni = self.readOdometry()
         error = 0.01  # error admitido en el movimiento (en metros)
+        v = 0
 
         if (m < 0):  # negativo -> hacia atras
             v = -0.09
