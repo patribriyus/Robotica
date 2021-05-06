@@ -39,7 +39,7 @@ def movimientoConObstaculos(camino, myMap, robot, xObj, yObj):
             camino = myMap.replanPath(xObj, yObj)
         # myMap.cambiarPosIni(i[0], i[1])
         else:
-            robot.moverMetrosOdom(0.4)
+            robot.moverMetrosOdom(0.38)
 
             myMap.cambiarPosIni(i[0], i[1])
 
@@ -59,15 +59,16 @@ def orientarRobot(x, y, th, mapa, robot, myMap):
         giro = np.pi / 2
         # mov = abs(yObjB) - abs(y) #MapaB
         # mov = abs(y) - abs(yObjA)  # MapaA
-        mov = abs(y) - abs(yObj) if mapa else abs(yObj) - abs(y)
+        mov = 0.6 if mapa else 1
+
     else:  # mapaB - ir hacia la derecha(thObj=-pi/2)
         giro = -np.pi / 2
         # mov = abs(y) - abs(yObjB)  # mapaB
         # mov = abs(yObjA) - abs(y)  # mapaA
-        mov = abs(yObj) - abs(y) if mapa else abs(y) - abs(yObj)
+        mov = 1 if mapa else 0.6
 
     robot.girarRadianesOdom(giro)
-    robot.moverMetrosOdom(mov)
+    pegarseALaPared(myMap, robot, mov * 100)
     x, y, th = robot.readOdometry()
     print("Update of odometry ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
 
@@ -279,7 +280,7 @@ def main(args):
             robot.moverMetrosOdom(0.10)
 
             robot.setSpeed(0, 0)
-
+            # mira pelota
             robot.resetOdom()
 
             # TODO: copiar a mapaA
@@ -292,7 +293,7 @@ def main(args):
 
             robot.moverMetrosOdom(0.10)
             robot.setSpeed(0, 0)
-
+            #reiniciamos
             robot.setXValue(-1.6)
             myMap.setDireccion()
 
@@ -316,6 +317,7 @@ def main(args):
             if res:
                 robot.catch()
 
+            #mirar robot y salir
             x, y, th = robot.readOdometry()
             # orientar robot
             print("ODOMETRIA ANTES ORIENTAR ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
