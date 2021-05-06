@@ -16,9 +16,9 @@ from sample_matching import match_images, drawMatches2
 DEBUG = 1
 
 
-def pegarseALaPared(myMap, robot):
+def pegarseALaPared(myMap, robot, dist=20):
     robot.setSpeed(0.07, 0.0)
-    while (myMap.getDistanciaOjos() > 20):
+    while (myMap.getDistanciaOjos() > dist):
         continue
 
 
@@ -45,25 +45,29 @@ def movimientoConObstaculos(camino, myMap, robot, xObj, yObj):
 
 
 # Si izqODer = true -> izquierda
-def orientarRobot(x, y, th, myMap, robot):
+# SI mapa=true -> mapaA
+def orientarRobot(x, y, th, mapa, robot, myMap):
     # situar robot hacia arriba
     robot.girarRadianesOdom(-th)
     # Situar en eje horizontal (y=1.2 B| -1.2 A)
-    yObjA = -1.2
-    # yObjB = 1.2 #TODO:parametrizar
-    yObjB = yObjA
-    if (y < yObjB):  # mapab- ir hacia la izquierda (thObj=pi/2)
+    if mapa:  # mapaA
+        yObj = -1.2
+    else:
+        yObj = 1.2
+
+    if (y < yObj):  # mapab- ir hacia la izquierda (thObj=pi/2)
         giro = np.pi / 2
         # mov = abs(yObjB) - abs(y) #MapaB
-        mov = abs(y) - abs(yObjA)  # MapaB
+        # mov = abs(y) - abs(yObjA)  # MapaA
+        mov = abs(y) - abs(yObj) if mapa else abs(yObj) - abs(y)
     else:  # mapaB - ir hacia la derecha(thObj=-pi/2)
         giro = -np.pi / 2
         # mov = abs(y) - abs(yObjB)  # mapaB
-        mov = abs(yObjA) - abs(y)  # mapaA
+        # mov = abs(yObjA) - abs(y)  # mapaA
+        mov = abs(yObj) - abs(y) if mapa else abs(y) - abs(yObj)
 
     robot.girarRadianesOdom(giro)
     robot.moverMetrosOdom(mov)
-    print('ORIENTADO1')
     x, y, th = robot.readOdometry()
     print("Update of odometry ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
 
@@ -71,8 +75,8 @@ def orientarRobot(x, y, th, myMap, robot):
     robot.girarRadianesOdom(-th)  # situar el robot hacia arriba
 
     # situar en eje vertical (x=0)
-    robot.moverMetrosOdom(abs(x) - 0.1)
-
+    # robot.moverMetrosOdom(abs(x) - 0.1)  # TODO: cambiar por pegarse a pared?
+    pegarseALaPared(myMap, robot, 40)
     x, y, th = robot.readOdometry()
     print('ORIENTADO2')
     print("Update of odometry ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
@@ -121,7 +125,7 @@ def robotDetectado(robot, refFilename):
     print("la encontr 0:", found)
 
     # t3 = time.time()
-    cv2.imshow("INLIERS", frame)
+    # cv2.imshow("INLIERS", frame)
     # cv2.waitKey(0)
     # print("time to match %.2f" % (t3 - t2))
     rawCapture.truncate(0)
@@ -155,7 +159,6 @@ def main(args):
             myMap = Map2D(map_file)
             myMap.initOjos()
             im_file = "R2-D2_s.png"
-            ap.add_argument("-r", "--robot", default="R2D2_s.png", help="target template file")
 
             # trayectoria en S empezamos en el 600 2600
 
@@ -206,10 +209,11 @@ def main(args):
             x, y, th = robot.readOdometry()
             # orientar robot
             print("ODOMETRIA ANTES ORIENTAR ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
-            orientarRobot(x, y, th, myMap, robot)
+            orientarRobot(x, y, th, True, robot, myMap)
             print('-----------------------ROBOT ORIENTADO--------------------')
             # buscar robots
             x, y, th = robot.readOdometry()
+            print("***********************", x, y, th)
             robot.girarRadianesOdom(-th)
             found = False
             '''while th > -np.pi/4 and not found:
@@ -246,8 +250,7 @@ def main(args):
             map_file = "mapaB_CARRERA.txt"
             myMap = Map2D(map_file)
             myMap.initOjos()
-            # im_file = "BB8_s.png"
-            im_file = "R2-D2_s.png"
+            im_file = "BB8_s.png"
 
             # trayectoria en S invertida
 
@@ -266,18 +269,36 @@ def main(args):
             camino = myMap.findPath(4, 2, 5, 2)
             movimientoBasico(camino, myMap, robot)
 
+            # Linea vertical
             cinta = robot.sobreQueColorEstamos()
+            robot.setSpeed(-0.07, 0)
             while (not cinta):
-                robot.moverMetrosOdom(-0.02)
+                # robot.moverMetrosOdom(-0.02)
                 cinta = robot.sobreQueColorEstamos()
 
             robot.moverMetrosOdom(0.10)
 
+            robot.setSpeed(0, 0)
+
             robot.resetOdom()
+
+            # TODO: copiar a mapaA
+            # Cinta horizontal
+            cinta = robot.sobreQueColorEstamos()
+            robot.setSpeed(-0.07, 0)
+            while (not cinta):
+                # robot.moverMetrosOdom(-0.02)
+                cinta = robot.sobreQueColorEstamos()
+
+            robot.moverMetrosOdom(0.10)
+            robot.setSpeed(0, 0)
+
+            robot.setXValue(-1.6)
+            myMap.setDireccion()
 
             x, y, th = robot.readOdometry()
             print("ODojmetria desppues de reset", x, y, th)
-            robot.girarRadianesOdom(-np.pi / 2)
+            # robot.girarRadianesOdom(-np.pi / 2)
 
             # ir a la casilla de finPlan con replan
 
@@ -295,16 +316,16 @@ def main(args):
             if res:
                 robot.catch()
 
-
             x, y, th = robot.readOdometry()
             # orientar robot
             print("ODOMETRIA ANTES ORIENTAR ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
-            orientarRobot(x, y, th, myMap, robot)
+            orientarRobot(x, y, th, False, robot, myMap)
             print('-----------------------ROBOT ORIENTADO--------------------')
             # buscar robots
             x, y, th = robot.readOdometry()
-            robot.girarRadianesOdom(-th)
-            found = False
+            print("***********************", x, y, th)
+            # robot.girarRadianesOdom(-th)
+            found = False  # TODO: probar varias veces??
             '''while th > -np.pi/4 and not found:
                 found = robotDetectado(robot, im_file)
                 robot.girarRadianesOdom(-np.pi/16)
@@ -346,6 +367,7 @@ def main(args):
         robot.setSpeed(0, 0)
         robot.disableLuz()
         robot.stopOdometry()
+
 
 if __name__ == "__main__":
     # get and parse arguments passed to main

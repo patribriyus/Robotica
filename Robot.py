@@ -438,7 +438,7 @@ class Robot:
 
             if not blobVacio:  # si ha detectado un blob, entra
 
-                if not (180 < kp_obj.pt[0] < 190):  # kp_obj.pt[0] > 190 or kp_obj.pt[0] < 180:
+                if not (170 < kp_obj.pt[0] < 180):  # kp_obj.pt[0] > 190 or kp_obj.pt[0] < 180:
                     print("NO es posicion objetiva")
 
                     # if kp_obj.pt[0] > xObj_min:
@@ -457,12 +457,17 @@ class Robot:
                 # self.setSpeed(0, 0)
 
             self.lock_odometry.acquire()
-            self.x.value = -1.6
+#            self.x.value = -1.6
             self.y.value = 0.0
             self.th.value = 0
             self.lock_odometry.release()
 
         return True
+    def setXValue(self,newX):
+        self.lock_odometry.acquire()
+        self.x.value = newX
+        self.lock_odometry.release()
+        return None
 
     def moverCesta(self, movimiento):
         """Mueve la cesta hacia arriba o hacia abajo"""

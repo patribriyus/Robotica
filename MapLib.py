@@ -588,4 +588,7 @@ class Map2D:
 
         return self.BP.get_sensor(self.BP.PORT_3)
 
+    def setDireccion(self):
+        self.direccion = Direcciones.ARRIBA
+
 
