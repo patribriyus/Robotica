@@ -13,7 +13,7 @@ import picamera
 from picamera.array import PiRGBArray
 from sample_matching import match_images, drawMatches2
 
-DEBUG = 1
+DEBUG = 2
 
 
 def pegarseALaPared(myMap, robot, dist=20):
@@ -59,13 +59,13 @@ def orientarRobot(x, y, th, mapa, robot, myMap):
         giro = np.pi / 2
         # mov = abs(yObjB) - abs(y) #MapaB
         # mov = abs(y) - abs(yObjA)  # MapaA
-        mov = 0.6 if mapa else 1
+        mov = 0.58 if mapa else 0.98
 
     else:  # mapaB - ir hacia la derecha(thObj=-pi/2)
         giro = -np.pi / 2
         # mov = abs(y) - abs(yObjB)  # mapaB
         # mov = abs(yObjA) - abs(y)  # mapaA
-        mov = 1 if mapa else 0.6
+        mov = 0.98 if mapa else 0.58
 
     robot.girarRadianesOdom(giro)
     pegarseALaPared(myMap, robot, mov * 100)
@@ -177,19 +177,34 @@ def main(args):
 
             camino = myMap.findPath(2, 2, 1, 2)
             movimientoBasico(camino, myMap, robot)
-
+            # Linea vertical
             cinta = robot.sobreQueColorEstamos()
+            robot.setSpeed(-0.07, 0)
             while (not cinta):
-                robot.moverMetrosOdom(-0.02)
+                # robot.moverMetrosOdom(-0.02)
                 cinta = robot.sobreQueColorEstamos()
 
             robot.moverMetrosOdom(0.10)
 
+            robot.setSpeed(0, 0)
+            # mira pelota
             robot.resetOdom()
+
+            # Cinta horizontal
+            cinta = robot.sobreQueColorEstamos()
+            robot.setSpeed(-0.07, 0)
+            while (not cinta):
+                # robot.moverMetrosOdom(-0.02)
+                cinta = robot.sobreQueColorEstamos()
+
+            robot.moverMetrosOdom(0.10)
+            robot.setSpeed(0, 0)
+            # reiniciamos
+            robot.setXValue(-1.6)
+            myMap.setDireccion()
 
             x, y, th = robot.readOdometry()
             print("ODojmetria desppues de reset", x, y, th)
-            robot.girarRadianesOdom(np.pi / 2)
 
             # ir a la casilla de finPlan con replan
 
@@ -217,11 +232,7 @@ def main(args):
             print("***********************", x, y, th)
             robot.girarRadianesOdom(-th)
             found = False
-            '''while th > -np.pi/4 and not found:
-                found = robotDetectado(robot, im_file)
-                robot.girarRadianesOdom(-np.pi/16)
-                x, y, th = robot.readOdometry()
-            '''
+
             found = robotDetectado(robot, im_file)
             print("ENCONTRADO", found)
 
@@ -283,7 +294,6 @@ def main(args):
             # mira pelota
             robot.resetOdom()
 
-            # TODO: copiar a mapaA
             # Cinta horizontal
             cinta = robot.sobreQueColorEstamos()
             robot.setSpeed(-0.07, 0)
