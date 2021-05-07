@@ -280,7 +280,7 @@ def main(args):
 
             camino = myMap.findPath(4, 2, 5, 2)
             movimientoBasico(camino, myMap, robot)
-
+            
             # Linea vertical
             cinta = robot.sobreQueColorEstamos()
             robot.setSpeed(-0.07, 0)
@@ -306,7 +306,7 @@ def main(args):
             #reiniciamos
             robot.setXValue(-1.6)
             myMap.setDireccion()
-
+            
             x, y, th = robot.readOdometry()
             print("ODojmetria desppues de reset", x, y, th)
             # robot.girarRadianesOdom(-np.pi / 2)
@@ -317,7 +317,7 @@ def main(args):
             movimientoConObstaculos(camino, myMap, robot, 3, 2)
             # hacer entrar al robot en la zona de la pelota
             x, y, th = robot.readOdometry()
-            robot.girarRadianesOdom(-th)  # robot orientado hacia arriba
+            # robot.girarRadianesOdom(-th)  # robot orientado hacia arriba
             robot.moverMetrosOdom(0.4)
             robot.girarRadianesOdom(np.pi / 4)  # robot diagonal
             robot.moverMetrosOdom(0.4)

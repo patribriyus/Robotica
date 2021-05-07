@@ -580,14 +580,14 @@ class Map2D:
     def cambiarPosIni(self, newx, newy):
         self.posicionXIni = newx
         self.posicionYIni = newy
-
+        
     def getDistanciaOjos(self):
         """
         :return: true si hay objetos delante, false si no
         """
 
         return self.BP.get_sensor(self.BP.PORT_3)
-
+        
     def setDireccion(self):
         self.direccion = Direcciones.ARRIBA
 
