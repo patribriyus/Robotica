@@ -31,9 +31,6 @@ x_max = 181.0
 y_min = 200.0
 y_max = 350.0
 
-d_min = 93.0
-d_max = 106.0
-
 
 class Robot:
     def __init__(self, init_position=[0.0, 0.0, 0.0]):
@@ -42,8 +39,6 @@ class Robot:
 
         Initialize Motors and Sensors according to the set up in your robot
         """
-
-        ######## UNCOMMENT and FILL UP all you think is necessary (following the suggested scheme) ########
 
         # Robot construction parameters
 
@@ -60,9 +55,6 @@ class Robot:
 
         # Create an instance of the BrickPi3 class. BP will be the BrickPi3 object.
         self.BP = brickpi3.BrickPi3()
-
-        # Configure sensors, for example a touch sensor.
-        # self.BP.set_sensor_type(self.BP.PORT_1, self.BP.SENSOR_TYPE.TOUCH)
 
         # reset encoder B and C
         self.BP.offset_motor_encoder(self.BP.PORT_B,
@@ -81,12 +73,8 @@ class Robot:
 
         # if we want to block several instructions to be run together, we may want to use an explicit Lock
         self.lock_odometry = Lock()
-        # ejemplo de uso
-        # self.lock_odometry.acquire()
-        # print('hello world', i)
-        # self.lock_odometry.release()
 
-        # odometry update period --> UPDATE value!
+        # odometry update period
         self.P = 0.2  # tiempo entre cada comprobacion de la odometria (thread)
 
         # set camera ON
@@ -99,7 +87,7 @@ class Robot:
         self.cestaArriba = False
 
     def setSpeed(self, v, w):
-        """ To be filled - These is all dummy sample code """
+        """ Establece la velocidad lineal y angular correspondiente a las ruedas """
 
         print("setting speed to %.2f %.2f" % (v, w))
 
@@ -110,8 +98,6 @@ class Robot:
         matrixW = np.dot(matrixRL, matrixVW)
 
         # Establecer velocidad a ambos motores a la vez
-        # speedPower = v
-        # BP.set_motor_power(BP.PORT_B + BP.PORT_C, speedPower)
 
         # Set the motor target speed in degrees per second
         speedDPS_right = degrees(matrixW[0][0])
@@ -129,17 +115,13 @@ class Robot:
         matrixRL = np.array([[1 / Gradio, GL / (2 * Gradio)], [1 / Gradio, -GL / (2 * Gradio)]])
         matrixW = np.dot(matrixRL, matrixVW)
 
-        # Establecer velocidad a ambos motores a la vez
-        # speedPower = v
-        # BP.set_motor_power(BP.PORT_B + BP.PORT_C, speedPower)
-
         # Set the motor target speed in degrees per second
         speedDPS = degrees(matrixW[1][0])
 
         self.BP.set_motor_dps(self.BP.PORT_D, speedDPS)
 
     def readSpeed(self):
-        """ To be filled"""
+        """ Lee las velocidades de las ruedas"""
         matrixRL = np.array([[Gradio / 2, Gradio / 2], [Gradio / GL, -Gradio / GL]])
         [wl, wr] = [math.radians(self.BP.get_motor_encoder(self.BP.PORT_B)),
                     math.radians(self.BP.get_motor_encoder(self.BP.PORT_C))]
@@ -149,9 +131,7 @@ class Robot:
         self.WR = wr
         matrixW = np.array([[y / self.P], [x / self.P]])
         matrixVW = np.dot(matrixRL, matrixW)
-        # TODO: descomentar
-        # print("WR:", y / self.P, "WL:", x / self.P)
-        # print("V:", matrixVW[0, 0], "w:", matrixVW[1, 0])
+        
         return matrixVW[0, 0], matrixVW[1, 0]
 
     def readOdometry(self):
@@ -165,10 +145,8 @@ class Robot:
         self.p.start()
         print("PID: ", self.p.pid)
 
-    # You may want to pass additional shared variables besides the odometry values and stop flag
-    def updateOdometry(self):  # , additional_params?):
-        # TODO: revisar la parte del UPDATE
-        """ To be filled ...  """
+    def updateOdometry(self):
+        """ Actualiza los valores de la odometria por los actuales """
 
         while not self.finished.value:
             # current processor time in a floating point value, in seconds
@@ -176,33 +154,13 @@ class Robot:
 
             # compute updates
 
-            ######## UPDATE FROM HERE with your code (following the suggested scheme) ########
             # TODO: descomentar
             # sys.stdout.write("Update of odometry ...., X=  %.2f, \
             # Y=  %.2f, th=  %.2f \n" % (self.x.value, self.y.value, self.th.value))
-            # print("Dummy update of odometry ...., X=  %.2f" %(self.x.value) )
-
-            # update odometry uses values that require mutex
-            # (they are declared as value, so lock is implicitly done for atomic operations, BUT =+ is NOT atomic)
-
-            # Operations like += which involve a read and write are not atomic.
-            # with self.x.get_lock():
-            #    self.x.value+=1
-
-            # to "lock" a whole set of operations, we can use a "mutex"
-            # self.lock_odometry.acquire()
-            # self.x.value+=1
-            # self.y.value+=1
-            # self.th.value+=1
-            # self.lock_odometry.release()
+            # print("Update of odometry ...., X=  %.2f" %(self.x.value) )
 
             try:
-                # Each of the following BP.get_motor_encoder functions returns the encoder value
-                # (what we want to store).
-                # sys.stdout.write("Reading encoder values .... \n")
-                # B = izq, C = der
-                # [encoder1, encoder2] = [self.BP.get_motor_encoder(self.BP.PORT_B),
-                #                        self.BP.get_motor_encoder(self.BP.PORT_C)]
+
                 difS = 0
                 difTH = 0
 
@@ -235,7 +193,7 @@ class Robot:
                 self.th.value = thNueva
                 self.lock_odometry.release()
 
-                # Meter datos en el LOG
+                # Mete los datos en el LOG
                 self.LOG.write(str(self.x.value) + ' ' + str(self.y.value)
                                + ' ' + str(self.th.value) + '\n')
 
@@ -246,10 +204,7 @@ class Robot:
             # sys.stdout.write("Encoder (%s) increased (in degrees) B: %6d  C: %6d " %
             #        (type(encoder1), encoder1, encoder2))
 
-            # TODO: decide when to store a log with the updated odometry
             # save LOG
-
-            ######## UPDATE UNTIL HERE with your code ########
 
             tEnd = time.clock()
             time.sleep(self.P - (tEnd - tIni))
@@ -265,7 +220,6 @@ class Robot:
         self.finished.value = True
         self.setSpeed(0, 0)
         cv2.destroyAllWindows()
-        # self.BP.reset_all()
 
     def velAng(self, xBlob):
         """Decide si la velocidad angular tiene que ser positiva o negativa"""
@@ -280,17 +234,13 @@ class Robot:
     def velLin(self, dBlob):
         """Decide cuando la velocidad lineal tiene que ser ser mas rapida o mas lenta"""
 
-        # TODO: si el objeto esta muy lejos -> velocidad alta
-        #       si esta lejos -> velocidad baja
         self.setSpeed(0.07, 0)
 
     def posObjetiva(self, xBlob, yBlob, dBlob):
 
         x = xBlob >= x_min and xBlob < x_max
         y = yBlob >= y_min and yBlob < y_max
-        # area = math.pi * math.pow(radioBlob,2)
-        d = dBlob >= d_min and dBlob < d_max
-        # return y
+
         return x and y
 
     def trackObject(self):
@@ -337,7 +287,6 @@ class Robot:
                     print(kp.pt[0], kp.pt[1], kp.size)
                     kp_obj = kp
 
-            # TODO: elegir blob
 
             im_with_keypoints = cv2.drawKeypoints(img, keypoints_red, np.array([]),
                                                   (255, 255, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -357,35 +306,16 @@ class Robot:
 
                 else:
                     print(" Posicion objetiva")
-                    # TODO: antes de salir del for volver a comprobar si la
-                    # la pelota sigue en su posicion objetiva
                     break
 
             else:
                 # Si no encuentra la pelota, da vueltas sobre si mismo
                 self.setSpeed(0, 0.8)
-                # self.setSpeed(0, 0)
 
         return True
 
-    def posObjetivaReset(self, xBlob, yBlob, dBlob):
-
-        x = xBlob >= 193.5 and xBlob < 195
-        y = yBlob >= 144 and yBlob < 145
-        # area = math.pi * math.pow(radioBlob,2)
-        d = dBlob >= 81.5 and dBlob < 82.5
-        # return y
-        return x
-
     def resetOdom(self):
-        """ Esta funcion persigue la pelota roja hasta una posicion objetivo """
-
-        xObj_min = 193.5
-        xObj_max = 195
-        yObj_min = 144
-        yObj_max = 145
-        aObj_min = 81.5
-        aObj_max = 82.5
+        """ Esta funcion busca (pero no persigue) la pelota roja hasta una posicion objetivo """
 
         # Elegimos el umbral de rojo en HSV
         redMin1 = (175, 100, 75)
@@ -428,8 +358,6 @@ class Robot:
                     print(kp.pt[0], kp.pt[1], kp.size)
                     kp_obj = kp
 
-            # TODO: elegir blob
-
             im_with_keypoints = cv2.drawKeypoints(img, keypoints_red, np.array([]),
                                                   (255, 255, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
@@ -438,31 +366,26 @@ class Robot:
 
             if not blobVacio:  # si ha detectado un blob, entra
 
-                if not (170 < kp_obj.pt[0] < 180):  # kp_obj.pt[0] > 190 or kp_obj.pt[0] < 180:
+                if not (170 < kp_obj.pt[0] < 180):
                     print("NO es posicion objetiva")
-
-                    # if kp_obj.pt[0] > xObj_min:
                     self.setSpeed(0, 0.3)
 
                 else:
                     print(" Posicion objetiva")
                     self.setSpeed(0, 0)
-                    # TODO: antes de salir del for volver a comprobar si la
-                    # la pelota sigue en su posicion objetiva
                     break
 
             else:
                 # Si no encuentra la pelota, da vueltas sobre si mismo
                 self.setSpeed(0, 0.7)
-                # self.setSpeed(0, 0)
 
             self.lock_odometry.acquire()
-#            self.x.value = -1.6
             self.y.value = 0.0
             self.th.value = 0
             self.lock_odometry.release()
 
         return True
+    
     def setXValue(self,newX):
         self.lock_odometry.acquire()
         self.x.value = newX
@@ -495,10 +418,7 @@ class Robot:
             self.moverCesta("SUBIR")
             self.moverCesta("BAJAR")
 
-        # TODO: verificar si ha cogido correctamente la pelota
-
     def girarRadianesOdom(self, radianes):
-        # TODO: revisar
         x, y, th = self.readOdometry()
 
         radObj = th + radianes

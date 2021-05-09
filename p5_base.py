@@ -44,39 +44,36 @@ def movimientoConObstaculos(camino, myMap, robot, xObj, yObj):
             myMap.cambiarPosIni(i[0], i[1])
 
 
-# Si izqODer = true -> izquierda
 # SI mapa=true -> mapaA
 def orientarRobot(x, y, th, mapa, robot, myMap):
     # situar robot hacia arriba
     robot.girarRadianesOdom(-th)
+    
     # Situar en eje horizontal (y=1.2 B| -1.2 A)
-    if mapa:  # mapaA
+    if mapa:    # mapaA
         yObj = -1.2
-    else:
+    else:       # mapaB
         yObj = 1.2
 
-    if (y < yObj):  # mapab- ir hacia la izquierda (thObj=pi/2)
+    # si (y < yObj) -> estamos mas a la derecha y habra que girar a la izquierda
+    if (y < yObj):
         giro = np.pi / 2
-        # mov = abs(yObjB) - abs(y) #MapaB
-        # mov = abs(y) - abs(yObjA)  # MapaA
+        # Si mapaA quedarse a 0.58 de la pared, si mapaB 0.98
         mov = 0.58 if mapa else 0.98
 
-    else:  # mapaB - ir hacia la derecha(thObj=-pi/2)
+    # si (y >= yObj) -> estamos mas a la izquierda y habra que girar a la derecha
+    else:
         giro = -np.pi / 2
-        # mov = abs(y) - abs(yObjB)  # mapaB
-        # mov = abs(yObjA) - abs(y)  # mapaA
+        # Si mapaB quedarse a 0.58 de la pared, si mapaA 0.98
         mov = 0.98 if mapa else 0.58
 
     robot.girarRadianesOdom(giro)
-    pegarseALaPared(myMap, robot, mov * 100)
-    x, y, th = robot.readOdometry()
-    print("Update of odometry ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
+    pegarseALaPared(myMap, robot, mov * 100) # Se pasa en cm's
 
     x, y, th = robot.readOdometry()
     robot.girarRadianesOdom(-th)  # situar el robot hacia arriba
 
     # situar en eje vertical (x=0)
-    # robot.moverMetrosOdom(abs(x) - 0.1)  # TODO: cambiar por pegarse a pared?
     pegarseALaPared(myMap, robot, 40)
     x, y, th = robot.readOdometry()
     print('ORIENTADO2')
@@ -144,7 +141,7 @@ def main(args):
         # 1. launch updateOdometry thread()
         robot.startOdometry()
         ap = argparse.ArgumentParser()
-        # TODO: definir las variables diametro objetivo.
+
         robot.moverCesta("SUBIR")  # Se sube la cesta
         # 2. Loop running the tracking until ??, then catch the ball
         # TO-DO: ADD to the Robot class a method to track an object, given certain parameters
@@ -177,16 +174,19 @@ def main(args):
 
             camino = myMap.findPath(2, 2, 1, 2)
             movimientoBasico(camino, myMap, robot)
-            # Linea vertical
+            
+            # ---------------START AYUDAS
+            
+            # Cinta vertical
             cinta = robot.sobreQueColorEstamos()
             robot.setSpeed(-0.07, 0)
             while (not cinta):
-                # robot.moverMetrosOdom(-0.02)
                 cinta = robot.sobreQueColorEstamos()
 
             robot.moverMetrosOdom(0.10)
 
             robot.setSpeed(0, 0)
+            
             # mira pelota
             robot.resetOdom()
 
@@ -194,7 +194,6 @@ def main(args):
             cinta = robot.sobreQueColorEstamos()
             robot.setSpeed(-0.07, 0)
             while (not cinta):
-                # robot.moverMetrosOdom(-0.02)
                 cinta = robot.sobreQueColorEstamos()
 
             robot.moverMetrosOdom(0.10)
@@ -264,7 +263,7 @@ def main(args):
             myMap.initOjos()
             im_file = "BB8_s.png"
 
-            # trayectoria en S invertida
+            # Trayectoria en S invertida
 
             camino = myMap.findPath(5, 6, 6, 6)
             movimientoBasico(camino, myMap, robot)
@@ -281,70 +280,75 @@ def main(args):
             camino = myMap.findPath(4, 2, 5, 2)
             movimientoBasico(camino, myMap, robot)
             
-            # Linea vertical
+            # ---------------START AYUDAS
+            
+            # Cinta vertical
             cinta = robot.sobreQueColorEstamos()
             robot.setSpeed(-0.07, 0)
             while (not cinta):
-                # robot.moverMetrosOdom(-0.02)
                 cinta = robot.sobreQueColorEstamos()
 
             robot.moverMetrosOdom(0.10)
 
             robot.setSpeed(0, 0)
-            # mira pelota
+            
+            # Girar hasta ver la pelota
             robot.resetOdom()
 
             # Cinta horizontal
             cinta = robot.sobreQueColorEstamos()
             robot.setSpeed(-0.07, 0)
             while (not cinta):
-                # robot.moverMetrosOdom(-0.02)
                 cinta = robot.sobreQueColorEstamos()
 
             robot.moverMetrosOdom(0.10)
             robot.setSpeed(0, 0)
-            #reiniciamos
+            
+            # Actualizamos x de la odometria y direccion
             robot.setXValue(-1.6)
             myMap.setDireccion()
             
             x, y, th = robot.readOdometry()
             print("ODojmetria desppues de reset", x, y, th)
+            
+            # ---------------FINISH AYUDAS
+            
             # robot.girarRadianesOdom(-np.pi / 2)
 
-            # ir a la casilla de finPlan con replan
+            # Ir a la casilla de finPlan con replan
 
             camino = myMap.findPath(5, 2, 3, 2)
             movimientoConObstaculos(camino, myMap, robot, 3, 2)
-            # hacer entrar al robot en la zona de la pelota
+            
+            # Hacer entrar al robot en la zona de la pelota
             x, y, th = robot.readOdometry()
             # robot.girarRadianesOdom(-th)  # robot orientado hacia arriba
             robot.moverMetrosOdom(0.4)
             robot.girarRadianesOdom(np.pi / 4)  # robot diagonal
             robot.moverMetrosOdom(0.4)
 
-            # perseguir blob
+            # Perseguir blob
             res = robot.trackObject()
             if res:
                 robot.catch()
 
-            #mirar robot y salir
+            # Hacer matching con robot o no y salir
             x, y, th = robot.readOdometry()
             # orientar robot
             print("ODOMETRIA ANTES ORIENTAR ...., X=  %.2f, Y=  %.2f, th=  %.2f \n" % (x, y, th))
             orientarRobot(x, y, th, False, robot, myMap)
             print('-----------------------ROBOT ORIENTADO--------------------')
             # buscar robots
-            x, y, th = robot.readOdometry()
-            print("***********************", x, y, th)
-            # robot.girarRadianesOdom(-th)
-            found = False  # TODO: probar varias veces??
-            '''while th > -np.pi/4 and not found:
+            found = False
+            '''
+                # Prueba varias veces
+                while th > -np.pi/4 and not found:
                 found = robotDetectado(robot, im_file)
                 robot.girarRadianesOdom(-np.pi/16)
                 x, y, th = robot.readOdometry()
             '''
             found = robotDetectado(robot, im_file)
-            print("ENCONTRADO", found)
+            print("ENCONTRADO: ", found)
 
             x, y, th = robot.readOdometry()
             robot.girarRadianesOdom(-th)

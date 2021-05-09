@@ -406,11 +406,6 @@ class Map2D:
 
         return current_fig
 
-    def findPath(self, point_ini, point_end):
-        """ overloaded call to planPath (x_ini,  y_ini, x_end, y_end) """
-
-        return self.findPath(point_ini[0], point_ini[1],
-                             point_end[0], point_end[1])
 
     # ############################################################
     # METHODS to IMPLEMENT in P4
